@@ -2,29 +2,29 @@
 
 namespace App\Filament\Admin\Resources;
 
-use App\Filament\Admin\Resources\ChessMatchResource\Pages;
-use App\Models\ChessMatch;
+use App\Filament\Admin\Resources\SavedGameResource\Pages;
+use App\Models\SavedGame;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 
-class ChessMatchResource extends Resource
+class SavedGameResource extends Resource
 {
-    protected static ?string $model = ChessMatch::class;
+    protected static ?string $model = SavedGame::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-trophy';
+    protected static ?string $navigationIcon = 'heroicon-o-bookmark';
 
     protected static ?string $navigationGroup = 'Administration';
 
-    protected static ?int $navigationSort = -1;
+    protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationLabel = 'Matches';
+    protected static ?string $navigationLabel = 'Saved Games';
 
-    protected static ?string $modelLabel = 'Match';
+    protected static ?string $modelLabel = 'Saved Game';
 
-    protected static ?string $pluralModelLabel = 'Matches';
+    protected static ?string $pluralModelLabel = 'Saved Games';
 
     public static function getNavigationBadge(): ?string
     {
@@ -40,15 +40,9 @@ class ChessMatchResource extends Resource
                     ->required()
                     ->label('Player'),
 
-                Forms\Components\Toggle::make('is_win')
-                    ->label('Is Win?')
-                    ->default(false),
-
-                Forms\Components\TextInput::make('total_time')
-                    ->numeric()
+                Forms\Components\TextInput::make('fen')
                     ->required()
-                    ->label('Total Time (Seconds)')
-                    ->default(0),
+                    ->placeholder('r1bqkbnr/pppp1ppp/...'),
 
                 Forms\Components\Select::make('power_type')
                     ->label('Power Type')
@@ -75,19 +69,15 @@ class ChessMatchResource extends Resource
                     ->label('Player')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\IconColumn::make('is_win')
-                    ->boolean()
-                    ->label('Win')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('total_time')
-                    ->label('Duration')
-                    ->formatStateUsing(fn ($state) => floor($state / 60) . 'm ' . ($state % 60) . 's')
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('fen')
+                    ->limit(50)
+                    ->copyable()
+                    ->tooltip('Click to copy FEN'),
                 Tables\Columns\TextColumn::make('power_type')
                     ->badge()
                     ->color('primary')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
+                Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime('d M Y H:i')
                     ->sortable(),
             ])
@@ -95,7 +85,6 @@ class ChessMatchResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -106,19 +95,12 @@ class ChessMatchResource extends Resource
             ]);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListChessMatches::route('/'),
-            'create' => Pages\CreateChessMatch::route('/create'),
-            'edit' => Pages\EditChessMatch::route('/{record}/edit'),
+            'index' => Pages\ListSavedGames::route('/'),
+            'create' => Pages\CreateSavedGame::route('/create'),
+            'edit' => Pages\EditSavedGame::route('/{record}/edit'),
         ];
     }
 }

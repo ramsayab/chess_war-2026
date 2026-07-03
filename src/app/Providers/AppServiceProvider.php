@@ -30,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Activity::class, ActivityPolicy::class);
+        Gate::policy(\App\Models\ChessTip::class, \App\Policies\ChessTipPolicy::class);
+        Gate::policy(\App\Models\SavedGame::class, \App\Policies\SavedGamePolicy::class);
+        Gate::policy(\App\Models\PuzzleAttempt::class, \App\Policies\PuzzleAttemptPolicy::class);
         Page::formActionsAlignment(Alignment::Right);
         Notifications::alignment(Alignment::End);
         Notifications::verticalAlignment(VerticalAlignment::End);

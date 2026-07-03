@@ -72,6 +72,45 @@
             </a>
           </li>
         </ul>
+
+        <!-- Sidebar Widgets -->
+        <div class="sidebar-widgets-container">
+          <!-- Rank Widget -->
+          <div class="sidebar-widget rank-widget">
+            <span class="widget-label">Your Rank</span>
+            <div class="rank-display">
+              <span class="rank-hash">#</span>
+              <span class="rank-number">{{ $myRank }}</span>
+            </div>
+          </div>
+
+          <!-- XP Widget -->
+          <div class="sidebar-widget xp-widget">
+            <div class="xp-header">
+              <span class="level-badge">Lv. {{ $level }}</span>
+              <span class="xp-text">{{ $xpInCurrentLevel }}/{{ $nextLevelXp }} XP</span>
+            </div>
+            <div class="xp-bar-bg">
+              <div class="xp-bar" style="width: {{ $xpProgressPercent }}%"></div>
+            </div>
+          </div>
+
+          <!-- Daily Chess Tip Widget -->
+          <div class="sidebar-widget tip-widget">
+            <div class="tip-header">
+              <svg class="tip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .3 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+                <line x1="9" y1="18" x2="15" y2="18" />
+                <line x1="10" y1="22" x2="14" y2="22" />
+              </svg>
+              <span>Chess Tip</span>
+            </div>
+            <p class="tip-text">"{{ $dailyTip->tip }}"</p>
+            @if($dailyTip->author)
+              <span class="tip-author">&mdash; {{ $dailyTip->author }}</span>
+            @endif
+          </div>
+        </div>
       </aside>
 
       <!-- MAIN CONTENT -->
@@ -92,18 +131,165 @@
           </section>
 
           <section class="kpi-grid animate animate-3">
+            <!-- Win Rate Card -->
             <div class="kpi-card">
-              <span class="kpi-label">Win Rate</span>
-              <span class="kpi-value">{{ $winrate }}%</span>
+              <div class="kpi-card-header">
+                <span class="kpi-label">Win Rate</span>
+                <span class="kpi-card-icon">🏆</span>
+              </div>
+              <div class="kpi-card-body">
+                <span class="kpi-value">{{ $winrate }}%</span>
+                <div class="kpi-trend {{ $winrateDiff >= 0 ? 'trend-up' : 'trend-down' }}">
+                  @if($winrateDiff >= 0)
+                    <span class="trend-arrow">&uarr;</span> +{{ $winrateDiff }}% vs overall
+                  @else
+                    <span class="trend-arrow">&darr;</span> {{ $winrateDiff }}% vs overall
+                  @endif
+                </div>
+              </div>
+              <div class="kpi-chart-wrapper">
+                <svg class="kpi-sparkline" viewBox="0 0 100 30" preserveAspectRatio="none">
+                  @php
+                    $path = '';
+                    $count = count($winratePoints);
+                    foreach ($winratePoints as $i => $val) {
+                        $x = ($i / ($count - 1)) * 100;
+                        $y = 25 - ($val * 0.2); // map 0-100 to 25-5 range
+                        $path .= ($i === 0 ? 'M' : 'L') . " {$x},{$y}";
+                    }
+                  @endphp
+                  <path d="{{ $path }}" fill="none" stroke="var(--gold)" stroke-width="1.5" />
+                </svg>
+              </div>
             </div>
+
+            <!-- Avg Duration Card -->
             <div class="kpi-card">
-              <span class="kpi-label">Avg Duration</span>
-              <span class="kpi-value">{{ $avgMinutes }}m</span>
+              <div class="kpi-card-header">
+                <span class="kpi-label">Avg Duration</span>
+                <span class="kpi-card-icon">⏱</span>
+              </div>
+              <div class="kpi-card-body">
+                <span class="kpi-value">{{ $avgMinutes }}m</span>
+                <div class="kpi-trend {{ $durationDiff <= 0 ? 'trend-up' : 'trend-down' }}">
+                  @if($durationDiff <= 0)
+                    <span class="trend-arrow">&uarr;</span> {{ $durationDiff }}m vs overall
+                  @else
+                    <span class="trend-arrow">&darr;</span> +{{ $durationDiff }}m vs overall
+                  @endif
+                </div>
+              </div>
+              <div class="kpi-chart-wrapper">
+                <svg class="kpi-sparkline" viewBox="0 0 100 30" preserveAspectRatio="none">
+                  @php
+                    $path = '';
+                    $count = count($durationPoints);
+                    $maxDuration = max($durationPoints) ?: 10;
+                    $minDuration = min($durationPoints) ?: 0;
+                    $diffD = ($maxDuration - $minDuration) ?: 1;
+                    foreach ($durationPoints as $i => $val) {
+                        $x = ($i / ($count - 1)) * 100;
+                        $y = 25 - (($val - $minDuration) / $diffD) * 20; // map value to Y (5-25)
+                        $path .= ($i === 0 ? 'M' : 'L') . " {$x},{$y}";
+                    }
+                  @endphp
+                  <path d="{{ $path }}" fill="none" stroke="var(--gold)" stroke-width="1.5" />
+                </svg>
+              </div>
             </div>
+
+            <!-- Puzzles Solved Card -->
             <div class="kpi-card">
-              <span class="kpi-label">Puzzles Solved</span>
-              <span class="kpi-value">{{ $puzzlesSolved }}/{{ $puzzlesTotal }}</span>
+              <div class="kpi-card-header">
+                <span class="kpi-label">Puzzles Solved</span>
+                <span class="kpi-card-icon">🧩</span>
+              </div>
+              <div class="kpi-card-body">
+                <span class="kpi-value">{{ $puzzlesSolved }}/{{ $puzzlesTotal }}</span>
+                <div class="kpi-trend {{ $solvedToday > 0 ? 'trend-up' : 'trend-neutral' }}">
+                  @if($solvedToday > 0)
+                    <span class="trend-arrow">&uarr;</span> +{{ $solvedToday }} solved today
+                  @else
+                    0 solved today
+                  @endif
+                </div>
+              </div>
+              <div class="kpi-chart-wrapper">
+                <svg class="kpi-sparkline" viewBox="0 0 100 30" preserveAspectRatio="none">
+                  @php
+                    $path = '';
+                    $count = count($puzzlePoints);
+                    $maxPuzzle = max($puzzlePoints) ?: 1;
+                    foreach ($puzzlePoints as $i => $val) {
+                        $x = ($i / ($count - 1)) * 100;
+                        $y = 25 - ($val / $maxPuzzle) * 20;
+                        $path .= ($i === 0 ? 'M' : 'L') . " {$x},{$y}";
+                    }
+                  @endphp
+                  <path d="{{ $path }}" fill="none" stroke="var(--gold)" stroke-width="1.5" />
+                </svg>
+              </div>
             </div>
+          </section>
+
+          <!-- Section Recent Activity -->
+          <section class="overview-section animate animate-3-5" style="margin-top: 2rem; width: 100%;">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <h2>Recent Activity</h2>
+                <p>Preview of your last 3 matches. Link to history for details.</p>
+              </div>
+              <a href="/dashboard?tab=history" class="play-now-btn btn-small" style="background: transparent; color: var(--gold-lt); border: 1px solid var(--border); box-shadow: none;">View Full History &rarr;</a>
+            </div>
+
+            @if($recentMatchesForPreview->isEmpty())
+              <div class="empty-history" style="padding: 2rem; border: 1px dashed rgba(201, 168, 76, 0.2); border-radius: 6px;">
+                <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">No matches played yet. Start your first match!</p>
+              </div>
+            @else
+              <div class="recent-matches-list" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 1rem;">
+                @foreach($recentMatchesForPreview as $match)
+                  @php
+                    $minutes = floor($match->total_time / 60);
+                    $seconds = $match->total_time % 60;
+                    
+                    $powersMap = [
+                      'blink_knight' => 'Blink Knight',
+                      'super_rook' => 'Super Rook',
+                      'confused_pawn' => 'Confused Pawn',
+                      'undying_king' => 'Undying King',
+                      'omni_queen' => 'Omni Queen',
+                      'grey_bishop' => 'Grey Bishop',
+                    ];
+                    $powerName = $powersMap[$match->power_type] ?? 'None';
+                  @endphp
+                  <div class="recent-match-card" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; background: rgba(26, 22, 18, 0.4); border: 1px solid rgba(201, 168, 76, 0.12); border-radius: 6px; transition: border-color 0.2s ease;">
+                    <div style="display: flex; align-items: center; gap: 1.25rem;">
+                      @if($match->is_win)
+                        <span class="badge badge-win" style="min-width: 80px; text-align: center;">Victory</span>
+                      @else
+                        <span class="badge badge-loss" style="min-width: 80px; text-align: center;">Defeat</span>
+                      @endif
+                      <div>
+                        <div style="font-size: 0.88rem; font-weight: 500; color: var(--ivory);">vs Wukong AI</div>
+                        <div style="font-size: 0.76rem; color: var(--muted);">Played {{ $match->created_at->diffForHumans() }}</div>
+                      </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 2rem;">
+                      <div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 0.15rem;">Power Drafted</div>
+                        <span class="power-badge {{ $match->power_type ?: 'no-power' }}">{{ $powerName }}</span>
+                      </div>
+                      <div style="text-align: right; min-width: 70px;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 0.15rem;">Duration</div>
+                        <div style="font-size: 0.85rem; color: var(--cream); font-weight: 500;">{{ $minutes }}m {{ $seconds }}s</div>
+                      </div>
+                    </div>
+                  </div>
+                @endforeach
+              </div>
+            @endif
           </section>
 
           <!-- Powers Reference Panel -->
@@ -114,35 +300,160 @@
             </div>
             
             <div class="powers-guide-grid">
+              <!-- Confused Pawn -->
               <div class="guide-card">
-                <div class="guide-card-icon">♟</div>
-                <h4>Confused Pawn</h4>
-                <p>Can move 1 step forward or backward. Opponent pawns stay normal.</p>
+                <div class="guide-card-top">
+                  <div class="guide-card-icon">♟</div>
+                  <div>
+                    <h4>Confused Pawn</h4>
+                    <p>Can move 1 step forward or backward. Opponent pawns stay normal.</p>
+                  </div>
+                </div>
+                <div class="mini-board-wrapper">
+                  <div class="mini-board">
+                    @for($i = 0; $i < 25; $i++)
+                      @php
+                        $row = floor($i / 5);
+                        $col = $i % 5;
+                        $isLight = ($row + $col) % 2 === 0;
+                        $isHighlight = in_array($i, [7, 17]);
+                      @endphp
+                      <div class="mini-square {{ $isLight ? 'light' : 'dark' }} {{ $isHighlight ? 'highlight' : '' }}">
+                        @if($i === 12) <span class="mini-piece">♟</span> @endif
+                      </div>
+                    @endfor
+                  </div>
+                </div>
               </div>
+
+              <!-- Blink Knight -->
               <div class="guide-card">
-                <div class="guide-card-icon">♞</div>
-                <h4>Blink Knight</h4>
-                <p>Can make standard jumps or double-length leaps to control the board.</p>
+                <div class="guide-card-top">
+                  <div class="guide-card-icon">♞</div>
+                  <div>
+                    <h4>Blink Knight</h4>
+                    <p>Can make standard L-jumps or double-length leaps to control the board.</p>
+                  </div>
+                </div>
+                <div class="mini-board-wrapper">
+                  <div class="mini-board">
+                    @for($i = 0; $i < 25; $i++)
+                      @php
+                        $row = floor($i / 5);
+                        $col = $i % 5;
+                        $isLight = ($row + $col) % 2 === 0;
+                        $isHighlight = in_array($i, [1, 3, 5, 9, 15, 19, 21, 23, 0, 4, 20, 24]);
+                      @endphp
+                      <div class="mini-square {{ $isLight ? 'light' : 'dark' }} {{ $isHighlight ? 'highlight' : '' }}">
+                        @if($i === 12) <span class="mini-piece">♞</span> @endif
+                      </div>
+                    @endfor
+                  </div>
+                </div>
               </div>
+
+              <!-- Grey Bishop -->
               <div class="guide-card">
-                <div class="guide-card-icon">♝</div>
-                <h4>Grey Bishop</h4>
-                <p>Can slide sideways by 1 square before sliding diagonally from its new path.</p>
+                <div class="guide-card-top">
+                  <div class="guide-card-icon">♝</div>
+                  <div>
+                    <h4>Grey Bishop</h4>
+                    <p>Can slide sideways by 1 square before sliding diagonally from its new path.</p>
+                  </div>
+                </div>
+                <div class="mini-board-wrapper">
+                  <div class="mini-board">
+                    @for($i = 0; $i < 25; $i++)
+                      @php
+                        $row = floor($i / 5);
+                        $col = $i % 5;
+                        $isLight = ($row + $col) % 2 === 0;
+                        $isHighlight = in_array($i, [0, 4, 6, 8, 11, 13, 16, 18, 20, 24]);
+                      @endphp
+                      <div class="mini-square {{ $isLight ? 'light' : 'dark' }} {{ $isHighlight ? 'highlight' : '' }}">
+                        @if($i === 12) <span class="mini-piece">♝</span> @endif
+                      </div>
+                    @endfor
+                  </div>
+                </div>
               </div>
+
+              <!-- Super Rook -->
               <div class="guide-card">
-                <div class="guide-card-icon">♜</div>
-                <h4>Super Rook</h4>
-                <p>Can move vertically/horizontally, and slide diagonally forward to attack.</p>
+                <div class="guide-card-top">
+                  <div class="guide-card-icon">♜</div>
+                  <div>
+                    <h4>Super Rook</h4>
+                    <p>Can move vertically/horizontally, and slide diagonally forward to attack.</p>
+                  </div>
+                </div>
+                <div class="mini-board-wrapper">
+                  <div class="mini-board">
+                    @for($i = 0; $i < 25; $i++)
+                      @php
+                        $row = floor($i / 5);
+                        $col = $i % 5;
+                        $isLight = ($row + $col) % 2 === 0;
+                        $isHighlight = in_array($i, [2, 7, 10, 11, 13, 14, 17, 22, 0, 4, 6, 8]);
+                      @endphp
+                      <div class="mini-square {{ $isLight ? 'light' : 'dark' }} {{ $isHighlight ? 'highlight' : '' }}">
+                        @if($i === 12) <span class="mini-piece">♜</span> @endif
+                      </div>
+                    @endfor
+                  </div>
+                </div>
               </div>
+
+              <!-- Omni Queen -->
               <div class="guide-card">
-                <div class="guide-card-icon">♛</div>
-                <h4>Omni Queen</h4>
-                <p>Holds the combined movement of a Queen and a Knight jump.</p>
+                <div class="guide-card-top">
+                  <div class="guide-card-icon">♛</div>
+                  <div>
+                    <h4>Omni Queen</h4>
+                    <p>Holds the combined movement of a Queen and a Knight jump.</p>
+                  </div>
+                </div>
+                <div class="mini-board-wrapper">
+                  <div class="mini-board">
+                    @for($i = 0; $i < 25; $i++)
+                      @php
+                        $row = floor($i / 5);
+                        $col = $i % 5;
+                        $isLight = ($row + $col) % 2 === 0;
+                        $isHighlight = $i !== 12;
+                      @endphp
+                      <div class="mini-square {{ $isLight ? 'light' : 'dark' }} {{ $isHighlight ? 'highlight' : '' }}">
+                        @if($i === 12) <span class="mini-piece">♛</span> @endif
+                      </div>
+                    @endfor
+                  </div>
+                </div>
               </div>
+
+              <!-- Undying King -->
               <div class="guide-card">
-                <div class="guide-card-icon">♚</div>
-                <h4>Undying King</h4>
-                <p>Has 2 lives. The first capture will destroy the attacker and revive the King.</p>
+                <div class="guide-card-top">
+                  <div class="guide-card-icon">♚</div>
+                  <div>
+                    <h4>Undying King</h4>
+                    <p>Has 2 lives. The first capture will destroy the attacker and revive the King.</p>
+                  </div>
+                </div>
+                <div class="mini-board-wrapper">
+                  <div class="mini-board undying-king-board">
+                    @for($i = 0; $i < 25; $i++)
+                      @php
+                        $row = floor($i / 5);
+                        $col = $i % 5;
+                        $isLight = ($row + $col) % 2 === 0;
+                        $isHighlight = in_array($i, [6, 7, 8, 11, 13, 16, 17, 18]);
+                      @endphp
+                      <div class="mini-square {{ $isLight ? 'light' : 'dark' }} {{ $isHighlight ? 'highlight' : '' }}">
+                        @if($i === 12) <span class="mini-piece">♚</span> @endif
+                      </div>
+                    @endfor
+                  </div>
+                </div>
               </div>
             </div>
           </section>

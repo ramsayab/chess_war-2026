@@ -3,7 +3,13 @@
    ═══════════════════════════════════════ */
 
 body {
-    background: #0a0806;
+    background: #060504;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(201, 168, 76, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(201, 168, 76, 0.08) 0%, transparent 40%),
+        linear-gradient(rgba(201, 168, 76, 0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201, 168, 76, 0.012) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
 }
 
 .dash-nav {
@@ -109,13 +115,14 @@ body {
     border-color: var(--gold);
 }
 
+/* ── DASH WRAPPER ── */
 .dash-wrapper {
     padding-top: 92px;
     min-height: 100vh;
     background: radial-gradient(
         circle at 50% 0%,
-        rgba(201, 168, 76, 0.09),
-        rgba(10, 8, 6, 0)
+        rgba(201, 168, 76, 0.12),
+        rgba(6, 5, 4, 0)
     );
 }
 
@@ -719,5 +726,292 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 600;
+}
+
+/* ── NEW STYLES: SIDEBAR WIDGETS ── */
+.sidebar-widgets-container {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.sidebar-widget {
+    background: rgba(26, 22, 18, 0.45);
+    border: 1px solid rgba(201, 168, 76, 0.12);
+    border-radius: 4px;
+    padding: 1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebar-widget:hover {
+    border-color: rgba(201, 168, 76, 0.25);
+    box-shadow: 0 4px 15px rgba(201, 168, 76, 0.03);
+}
+
+.widget-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.rank-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.1rem;
+    margin-top: 0.25rem;
+}
+
+.rank-hash {
+    font-size: 1.1rem;
+    color: var(--gold);
+    font-weight: 600;
+}
+
+.rank-number {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff7e4;
+    line-height: 1;
+}
+
+.xp-widget .xp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.76rem;
+}
+
+.level-badge {
+    background: rgba(201, 168, 76, 0.15);
+    color: var(--gold-lt);
+    padding: 0.15rem 0.45rem;
+    border-radius: 2px;
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+}
+
+.xp-text {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.xp-bar-bg {
+    height: 5px;
+    background: #151210;
+    border-radius: 2.5px;
+    overflow: hidden;
+    margin-top: 0.25rem;
+    border: 1px solid rgba(201, 168, 76, 0.05);
+}
+
+.xp-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-lt));
+    border-radius: 2.5px;
+    transition: width 0.5s ease;
+}
+
+.tip-widget .tip-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold-lt);
+    font-weight: 600;
+}
+
+.tip-icon {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+}
+
+.tip-text {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: rgba(244, 239, 227, 0.8);
+    font-style: italic;
+    margin: 0;
+}
+
+.tip-author {
+    font-size: 0.7rem;
+    color: var(--muted);
+    align-self: flex-end;
+    font-weight: 500;
+}
+
+/* ── NEW STYLES: KPI CARDS WITH SPARKLINE ── */
+.kpi-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kpi-card-icon {
+    font-size: 1.25rem;
+    opacity: 0.85;
+}
+
+.kpi-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    z-index: 2;
+}
+
+.kpi-trend {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.trend-up {
+    color: #83c5be;
+}
+
+.trend-down {
+    color: #e5989b;
+}
+
+.trend-neutral {
+    color: var(--muted);
+}
+
+.trend-arrow {
+    display: inline-block;
+    font-weight: bold;
+}
+
+.kpi-chart-wrapper {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.35;
+    transition: opacity 0.25s ease;
+}
+
+.kpi-card:hover .kpi-chart-wrapper {
+    opacity: 0.75;
+}
+
+.kpi-sparkline {
+    width: 100%;
+    height: 100%;
+}
+
+/* ── NEW STYLES: RECENT ACTIVITY ── */
+.recent-match-card:hover {
+    border-color: rgba(201, 168, 76, 0.25) !important;
+    box-shadow: 0 4px 20px rgba(201, 168, 76, 0.04);
+}
+
+/* ── NEW STYLES: MINI CHESSBOARD MOVE VECTOR ── */
+.guide-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 235px;
+}
+
+.guide-card-top {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+}
+
+.guide-card-top .guide-card-icon {
+    font-size: 2.1rem;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.guide-card-top h4 {
+    margin-bottom: 0.25rem !important;
+}
+
+.mini-board-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(201, 168, 76, 0.08);
+}
+
+.mini-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    width: 110px;
+    height: 110px;
+    border: 1.5px solid rgba(201, 168, 76, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.mini-square {
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.mini-square.light {
+    background-color: #dcd4c4;
+}
+
+.mini-square.dark {
+    background-color: #5d5345;
+}
+
+.mini-square.highlight {
+    background-color: rgba(201, 168, 76, 0.7) !important;
+    box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.3);
+    animation: pulseHighlight 2s infinite alternate;
+}
+
+.undying-king-board .mini-square.highlight {
+    background-color: rgba(186, 73, 73, 0.6) !important;
+    animation: pulseRedHighlight 2s infinite alternate;
+}
+
+.mini-piece {
+    font-size: 1.25rem;
+    color: #1a1612;
+    font-weight: bold;
+    z-index: 2;
+    text-shadow: 0 1px 3px rgba(255,255,255,0.4);
+}
+
+@keyframes pulseHighlight {
+    0% { background-color: rgba(201, 168, 76, 0.55); }
+    100% { background-color: rgba(201, 168, 76, 0.85); }
+}
+
+@keyframes pulseRedHighlight {
+    0% { background-color: rgba(186, 73, 73, 0.45); }
+    100% { background-color: rgba(186, 73, 73, 0.75); }
 }
 

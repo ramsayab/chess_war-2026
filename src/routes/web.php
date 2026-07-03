@@ -102,10 +102,101 @@ Route::get('/dashboard', function (Illuminate\Http\Request $request) {
     $puzzlesSolved = $user->puzzleAttempts()->where('solved', true)->count();
     $puzzlesTotal = 10; // Total hardcoded puzzles
 
+    // 1. Calculate Player Rank
+    $rankings = \App\Models\User::select('users.id')
+        ->selectRaw('count(matches.id) as total_matches')
+        ->selectRaw('sum(case when matches.is_win = 1 then 1 else 0 end) as won_matches')
+        ->leftJoin('matches', 'users.id', '=', 'matches.user_id')
+        ->where(function($query) {
+            $query->where('users.is_admin', '!=', 1)
+                  ->orWhereNull('users.is_admin');
+        })
+        ->whereDoesntHave('roles', function($q) {
+            $q->whereIn('name', ['admin', 'super_admin']);
+        })
+        ->groupBy('users.id')
+        ->orderByRaw('sum(case when matches.is_win = 1 then 1 else 0 end) desc')
+        ->orderByRaw('count(matches.id) desc')
+        ->get();
+
+    $myRankIndex = $rankings->search(fn($player) => $player->id === $user->id);
+    $myRank = $myRankIndex !== false ? $myRankIndex + 1 : '-';
+
+    // 2. Calculate XP and Level
+    $totalXp = ($wonMatches * 100) + (($totalMatches - $wonMatches) * 25) + ($puzzlesSolved * 50);
+    $level = floor($totalXp / 1000) + 1;
+    $xpInCurrentLevel = $totalXp % 1000;
+    $nextLevelXp = 1000;
+    $xpProgressPercent = ($xpInCurrentLevel / $nextLevelXp) * 100;
+
+    // 3. Fetch Daily chess tip
+    $dailyTip = \App\Models\ChessTip::inRandomOrder()->first() ?? (object)[
+        'tip' => 'Always look for check, captures, and threats before making your move.',
+        'author' => 'Chess War Tip'
+    ];
+
+    // 4. Trends for KPI Cards
+    $recentMatches5 = $user->matches()->orderBy('created_at', 'desc')->take(5)->get();
+    $recentCount5 = $recentMatches5->count();
+    $recentWins5 = $recentMatches5->where('is_win', true)->count();
+    $recentWinrate = $recentCount5 > 0 ? round(($recentWins5 / $recentCount5) * 100) : 0;
+    $winrateDiff = $totalMatches > 0 ? ($recentWinrate - $winrate) : 0;
+
+    $recent7Matches = $user->matches()->orderBy('created_at', 'asc')->take(7)->get();
+    $runningWins = 0;
+    $runningTotal = 0;
+    $winratePoints = [];
+    foreach ($recent7Matches as $m) {
+        $runningTotal++;
+        if ($m->is_win) {
+            $runningWins++;
+        }
+        $winratePoints[] = round(($runningWins / $runningTotal) * 100);
+    }
+    if (count($winratePoints) < 2) {
+        $winratePoints = [50, 50];
+    }
+
+    $recentAvgDuration = $recentCount5 > 0 ? $recentMatches5->avg('total_time') : 0;
+    $recentAvgMinutes = round($recentAvgDuration / 60, 1);
+    $durationDiff = $totalMatches > 0 ? round($recentAvgMinutes - $avgMinutes, 1) : 0;
+
+    $durationPoints = [];
+    foreach ($recent7Matches as $m) {
+        $durationPoints[] = round($m->total_time / 60, 1);
+    }
+    if (count($durationPoints) < 2) {
+        $durationPoints = [5, 5];
+    }
+
+    $solvedToday = $user->puzzleAttempts()
+        ->where('solved', true)
+        ->whereDate('solved_at', \Carbon\Carbon::today())
+        ->count();
+
+    $puzzleAttempts7 = $user->puzzleAttempts()->orderBy('created_at', 'asc')->take(7)->get();
+    $runningSolves = 0;
+    $puzzlePoints = [];
+    foreach ($puzzleAttempts7 as $pa) {
+        if ($pa->solved) {
+            $runningSolves++;
+        }
+        $puzzlePoints[] = $runningSolves;
+    }
+    if (count($puzzlePoints) < 2) {
+        $puzzlePoints = [0, 0];
+    }
+
+    // 5. Recent matches for activity preview
+    $recentMatchesForPreview = $user->matches()->orderBy('created_at', 'desc')->take(3)->get();
+
     return view('dashboard', compact(
         'tab', 'winrate', 'powerCounts', 'avgMinutes',
         'totalMatches', 'wonMatches', 'matches', 'savedGame',
-        'leaderboard', 'puzzlesSolved', 'puzzlesTotal'
+        'leaderboard', 'puzzlesSolved', 'puzzlesTotal',
+        'myRank', 'level', 'xpInCurrentLevel', 'nextLevelXp', 'xpProgressPercent',
+        'dailyTip', 'winrateDiff', 'winratePoints', 'durationDiff', 'durationPoints',
+        'solvedToday', 'puzzlePoints', 'recentMatchesForPreview'
     ));
 })->middleware('auth')->name('dashboard');
 
