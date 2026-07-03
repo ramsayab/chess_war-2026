@@ -1,11 +1,11 @@
 <html>
   <head>
-    <title>WukongJS + Chessboardjs</title>
+    <title>ChessWar</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -30,6 +30,19 @@
         --game-border: rgba(201, 168, 76, 0.28);
         --game-gold: #c9a84c;
         --game-text: #f4efe3;
+
+        --void: #07080d;
+        --panel: #0d111d;
+        --panel-2: #131829;
+        --card: #0e1220;
+        --card-hi: #161c30;
+        --gold: #c9a44c;
+        --gold-bright: #f0d38a;
+        --gold-dim: rgba(201,164,76,0.28);
+        --ember: #7c3b34;
+        --ivory: #ece4d0;
+        --slate: #9096a6;
+        --slate-dim: #5c6172;
       }
 
       * {
@@ -387,38 +400,197 @@
         box-shadow: inset 0 0 3px 3px var(--game-gold) !important;
       }
 
-      .power-card.mystery {
-        border: 1px dashed rgba(201, 168, 76, 0.4) !important;
-        background: radial-gradient(circle at center, rgba(201, 168, 76, 0.15) 0%, rgba(9, 17, 31, 0.95) 100%) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-      }
-      .power-card.mystery .power-card__badge {
-        background: linear-gradient(135deg, #e2c97e 0%, #c9a84c 100%) !important;
-        color: #0c0f16 !important;
-        font-weight: 600 !important;
-      }
-      .power-card.mystery .power-card__name {
-        color: #e2c97e !important;
-        font-size: 2.2rem !important;
-        text-align: center !important;
-        margin: 18px 0 !important;
-      }
-      .power-card.mystery .power-card__desc {
-        text-align: center !important;
-        color: rgba(244, 239, 227, 0.5) !important;
-        font-size: 0.82rem !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.08em !important;
-      }
+      /* Premium Card Selection Layout Styles */
+      .corner { position: absolute; width: 34px; height: 34px; opacity: 0.7; }
+      .corner svg { width: 100%; height: 100%; }
+      .corner.tl { top: 14px; left: 14px; }
+      .corner.tr { top: 14px; right: 14px; transform: scaleX(-1); }
+      .corner.bl { bottom: 14px; left: 14px; transform: scaleY(-1); }
+      .corner.br { bottom: 14px; right: 14px; transform: scale(-1,-1); }
 
-      .shuffle-status-banner {
-        font-size: 0.85rem;
-        color: var(--game-gold);
-        letter-spacing: 0.15em;
+      .eyebrow {
+        text-align: center;
+        font-size: 11px;
+        letter-spacing: 0.32em;
         text-transform: uppercase;
-        margin-top: 15px;
+        color: var(--gold);
+        margin: 0 0 14px;
         font-weight: 500;
       }
+      .eyebrow::before, .eyebrow::after { content: "◆"; font-size: 6px; margin: 0 12px; color: var(--gold-dim); vertical-align: middle; }
+
+      .sub {
+        text-align: center;
+        font-family: 'Cormorant Garamond', serif;
+        font-style: italic;
+        font-size: 19px;
+        color: var(--slate);
+        max-width: 520px;
+        margin: 0 auto 40px;
+        line-height: 1.5;
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        max-width: 360px;
+        margin: 0 auto 40px;
+      }
+      .divider span { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
+      .divider i { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); }
+
+      .privilege {
+        background: radial-gradient(ellipse at 50% -20%, rgba(201,164,76,0.06), transparent 60%), var(--panel-2);
+        border: 1px solid var(--gold-dim);
+        padding: 40px 40px 34px;
+      }
+      .privilege .tag {
+        text-align: center;
+        font-size: 10.5px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin: 0 0 10px;
+      }
+      .privilege h2 {
+        text-align: center;
+        font-family: 'Cinzel', serif;
+        font-weight: 500;
+        font-size: 24px;
+        margin: 0 0 10px;
+        color: var(--ivory);
+      }
+      .privilege p.desc {
+        text-align: center;
+        font-size: 14px;
+        color: var(--slate);
+        margin: 0 0 34px;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+      }
+      .card {
+        position: relative;
+        background: #000000 !important;
+        border: 1px solid rgba(201,168,76,0.20) !important;
+        padding: 30px 22px 26px;
+        cursor: pointer;
+        text-align: center;
+        transition: transform 0.35s cubic-bezier(0.2,0.8,0.2,1), border-color 0.35s, box-shadow 0.35s, background 0.35s;
+        opacity: 0;
+        animation: cardIn 0.6s cubic-bezier(0.2,0.8,0.2,1) forwards;
+      }
+      .card:nth-child(1) { animation-delay: 0.15s; }
+      .card:nth-child(2) { animation-delay: 0.28s; }
+      .card:nth-child(3) { animation-delay: 0.41s; }
+      @keyframes cardIn {
+        from { opacity: 0; transform: translateY(14px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(240,211,138,0.55) !important;
+        background: linear-gradient(160deg, var(--card-hi) 0%, #0a0d18 100%) !important;
+        box-shadow: 0 18px 40px -18px rgba(0,0,0,0.7), 0 0 0 1px rgba(240,211,138,0.08);
+      }
+      .card.selected {
+        border-color: var(--gold-bright) !important;
+        background: linear-gradient(160deg, var(--card-hi) 0%, #0d1120 100%) !important;
+        box-shadow: 0 0 0 1px rgba(240,211,138,0.5), 0 18px 44px -16px rgba(0,0,0,0.8);
+        transform: translateY(-6px);
+      }
+      .card .beam {
+        position: absolute; top: 0; left: 12%; right: 12%; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+        opacity: 0; transition: opacity 0.35s;
+      }
+      .card.selected .beam { opacity: 1; }
+
+      .seal {
+        position: absolute; top: -11px; right: -11px;
+        width: 26px; height: 26px; border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 70%);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; color: #1a1204; font-weight: 600;
+        opacity: 0; transform: scale(0.4);
+        transition: opacity 0.3s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      }
+      .card.selected .seal { opacity: 1; transform: scale(1); }
+
+      .glyph {
+        font-size: 44px;
+        line-height: 1;
+        margin: 6px 0 16px;
+        color: var(--gold);
+        transition: color 0.35s, text-shadow 0.35s;
+      }
+      .card:hover .glyph, .card.selected .glyph {
+        color: var(--gold-bright);
+        text-shadow: 0 0 22px rgba(240,211,138,0.35);
+      }
+
+      .card .rank {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--slate-dim);
+        margin: 0 0 6px;
+      }
+      .card h3 {
+        font-family: 'Cinzel', serif;
+        font-weight: 500;
+        font-size: 18px;
+        margin: 0 0 12px;
+        color: var(--ivory);
+      }
+
+      .footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(201,164,76,0.15);
+        flex-wrap: wrap;
+      }
+      .footer .status {
+        font-size: 12.5px;
+        letter-spacing: 0.06em;
+        color: var(--slate);
+      }
+      .footer .status b {
+        color: var(--gold-bright);
+        font-weight: 500;
+      }
+      button.begin {
+        font-family: 'Jost', sans-serif;
+        font-size: 13px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-weight: 600;
+        padding: 14px 30px;
+        border: 1px solid var(--gold-dim);
+        background: transparent;
+        color: var(--slate-dim);
+        cursor: not-allowed;
+        transition: all 0.35s;
+      }
+      button.begin.active {
+        color: #171106;
+        background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+        border-color: var(--gold-bright);
+        cursor: pointer;
+        box-shadow: 0 10px 26px -10px rgba(201,164,76,0.55);
+      }
+      button.begin.active:hover { filter: brightness(1.08); transform: translateY(-1px); }
+      button.begin.active:active { transform: translateY(0); }
 
       .game-shell-compact {
         width: min(440px, 100%) !important;
@@ -444,24 +616,31 @@
       <div class="row justify-content-center" style="width: 100%; max-width: 900px; margin: 0 auto;">
         
         <!-- ==================== PRE-GAME AREA (Header + Cards) ==================== -->
-        <div align="center" class="col-12 game-shell" id="game-pre-area">
-          <p class="game-kicker">Chess War</p>
-          <h1 class="game-title">Battle Arena</h1>
-          <p class="game-subtitle">Choose one user power before the match starts. The bot stays standard.</p>
+        <div align="center" class="col-12 game-shell" id="game-pre-area" style="position: relative; padding: 64px 56px 48px; border: 1px solid var(--gold-dim); background: linear-gradient(180deg, var(--panel) 0%, #0a0d17 100%);">
+          <!-- Corners -->
+          <div class="corner tl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32V6a4 4 0 0 1 4-4h26" stroke="#c9a44c" stroke-width="1.2"/><circle cx="6" cy="6" r="2" fill="#c9a44c"/></svg></div>
+          <div class="corner tr"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32V6a4 4 0 0 1 4-4h26" stroke="#c9a44c" stroke-width="1.2"/><circle cx="6" cy="6" r="2" fill="#c9a44c"/></svg></div>
+          <div class="corner bl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32V6a4 4 0 0 1 4-4h26" stroke="#c9a44c" stroke-width="1.2"/><circle cx="6" cy="6" r="2" fill="#c9a44c"/></svg></div>
+          <div class="corner br"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32V6a4 4 0 0 1 4-4h26" stroke="#c9a44c" stroke-width="1.2"/><circle cx="6" cy="6" r="2" fill="#c9a44c"/></svg></div>
 
-          <div class="power-panel" id="power-panel">
-            <div class="power-panel__header">
-              <p class="power-panel__label">User privilege</p>
-              <h2 class="power-panel__title">Select 1 Active Power</h2>
-              <p class="power-panel__hint">Choose one card to reveal your secret power. The bot stays standard.</p>
+          <p class="eyebrow">Chess War</p>
+          <h1 style="font-family:'Cinzel',serif; font-weight:600; font-size:clamp(32px,5vw,46px); letter-spacing:.01em; margin:0 0 14px; color:var(--gold-bright); text-shadow:0 0 28px rgba(240,211,138,0.18);">Battle Arena</h1>
+          <p class="sub">Choose one royal privilege before the match begins. Your opponent plays it straight.</p>
+
+          <div class="divider"><span></span><i></i><span></span></div>
+
+          <div class="privilege">
+            <p class="tag">User Privilege</p>
+            <h2>Select 1 Active Power</h2>
+            <p class="desc">Choose one card to reveal your secret power. The bot stays standard.</p>
+
+            <div class="cards" id="power-grid" role="radiogroup" aria-label="Choose active power">
+              <!-- Dynamically populated cards -->
             </div>
 
-            <div class="power-grid" id="power-grid" role="radiogroup" aria-label="Choose active power">
-              <!-- Dynamically populated and shuffled mystery cards -->
-            </div>
-
-            <div id="shuffle-status" class="shuffle-status-banner">
-              Select a card to draw your power.
+            <div class="footer">
+              <p class="status" id="shuffle-status">No power selected — choose one card above.</p>
+              <button class="begin" id="beginBtn" disabled>Begin Battle →</button>
             </div>
           </div>
         </div>
@@ -740,74 +919,107 @@
     return array;
   }
 
+  const powerGlyphs = {
+    'blink_knight': '♞',
+    'super_rook': '♜',
+    'confused_pawn': '♟',
+    'undying_king': '♚',
+    'omni_queen': '♛',
+    'grey_bishop': '♝'
+  };
+
   function runShufflingAnimation() {
     window.isShuffling = false;
     const grid = $('#power-grid');
     grid.empty();
     
+    // Reset the begin battle button
+    $('#beginBtn').attr('disabled', 'disabled').removeClass('active');
+    chosenPower = null;
+    
     if (window.isAdmin) {
-      // Admin flow: show all 6 powers with their actual names and descriptions
+      // Admin flow: show all 6 powers with their actual names, glyphs, and descriptions
       window.currentShuffledPowers = [...powersList];
       
       window.currentShuffledPowers.forEach((power, index) => {
+        const glyph = powerGlyphs[power.value] || '♟';
         grid.append(`
-          <label class="power-card" data-power="${power.value}" data-index="${index}">
-            <input class="power-card__radio" type="radio" name="active_power" value="${power.value}" style="position: absolute; opacity: 0; pointer-events: none;">
-            <span class="power-card__badge" style="background: linear-gradient(135deg, #e2c97e 0%, #c9a84c 100%) !important; color: #0c0f16 !important; font-weight: 600 !important;">Power</span>
-            <span class="power-card__name" style="margin-top: 12px !important; font-family: 'Cormorant Garamond', serif !important; font-size: 1.6rem !important; line-height: 1 !important; color: #fff7e4 !important; text-align: left !important; font-weight: normal !important;">${power.name}</span>
-            <span class="power-card__desc" style="margin-top: 8px !important; color: rgba(244, 239, 227, 0.72) !important; font-size: 0.92rem !important; line-height: 1.45 !important; text-transform: none !important; letter-spacing: normal !important; text-align: left !important;">${power.desc}</span>
-          </label>
+          <div class="card" data-power="${power.name}" data-index="${index}">
+            <div class="beam"></div>
+            <div class="seal">✓</div>
+            <p class="rank">Admin Choice</p>
+            <div class="glyph">${glyph}</div>
+            <h3>${power.name}</h3>
+            <p class="desc-text" style="font-size:13px; line-height:1.6; color:#9096a6; margin:0;">${power.desc}</p>
+          </div>
         `);
       });
       
       $('#shuffle-status').text('Admin Privilege: Choose any power to activate.');
     } else {
-      // Normal user flow: show 3 secret cards
+      // Normal user flow: show 3 secret cards (CARD 1 - 3, full black, gold outline, no description)
       const shuffled = shuffle([...powersList]);
       window.currentShuffledPowers = shuffled.slice(0, 3);
       
-      const romanNumerals = ['I', 'II', 'III'];
-      
       window.currentShuffledPowers.forEach((power, index) => {
         grid.append(`
-          <label class="power-card mystery" data-power="${power.value}" data-index="${index}">
-            <input class="power-card__radio" type="radio" name="active_power" value="${power.value}" style="position: absolute; opacity: 0; pointer-events: none;">
-            <span class="power-card__badge">Secret</span>
-            <span class="power-card__name">CARD ${romanNumerals[index]}</span>
-            <span class="power-card__desc">Select to reveal</span>
-          </label>
+          <div class="card" data-power="CARD ${index + 1}" data-index="${index}">
+            <div class="beam"></div>
+            <div class="seal">✓</div>
+            <p class="rank">Secret</p>
+            <div class="glyph">?</div>
+            <h3>CARD ${index + 1}</h3>
+          </div>
         `);
       });
 
-      $('#shuffle-status').text('Choose one card to select your power.');
+      $('#shuffle-status').text('No power selected — choose one card above.');
     }
   }
 
-  $('#power-grid').on('click', '.power-card', function() {
-    if (window.isShuffling) return; // Prevent selection while shuffling
+  let chosenPower = null;
+
+  $('#power-grid').on('click', '.card', function() {
     if (window.powerSelected) return; // Only allow selecting once
+
+    $('.card').removeClass('selected');
+    $(this).addClass('selected');
+    
+    const chosenIndex = $(this).data('index');
+    chosenPower = window.currentShuffledPowers[chosenIndex];
+    if (!chosenPower) return;
+
+    // Enable the Begin Battle button
+    $('#beginBtn').removeAttr('disabled').addClass('active');
+
+    if (window.isAdmin) {
+      $('#shuffle-status').html('Power selected — <b>' + chosenPower.name + '</b>');
+    } else {
+      $('#shuffle-status').html('Card selected — <b>CARD ' + (chosenIndex + 1) + '</b>');
+    }
+  });
+
+  $('#beginBtn').on('click', function() {
+    if (!$(this).hasClass('active')) return;
+    if (window.powerSelected) return;
+    if (!chosenPower) return;
 
     window.powerSelected = true;
     startTimer(); // Start the game timer
     
-    const selectedCard = $(this);
-    const chosenIndex = selectedCard.data('index');
-    const power = window.currentShuffledPowers[chosenIndex];
-    if (!power) return;
-
-    window.activePlayerPower = power.value;
+    window.activePlayerPower = chosenPower.value;
     if (window.engine && typeof window.engine.setPlayerPower === 'function') {
-      window.engine.setPlayerPower(power.value);
+      window.engine.setPlayerPower(chosenPower.value);
     }
     
     lastKingLives = 2;
 
     // Populate active header details
-    $('#active-power-title').text(power.name);
-    $('#active-power-desc').text(power.desc);
+    $('#active-power-title').text(chosenPower.name);
+    $('#active-power-desc').text(chosenPower.desc);
     updateKingLivesUI();
 
-    // Hide pre-game area and show gameplay arena wrapper
+    // Transition to gameplay
     $('#game-pre-area').fadeOut(300, function() {
       $('#active-power-header').show();
       $('#game-arena-wrapper').fadeIn(300, function() {

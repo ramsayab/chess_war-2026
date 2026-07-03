@@ -316,8 +316,12 @@ var Engine = function (boardSize, lightSquare, darkSquare, selectColor) {
         33, 66, 31, 62, 18, 36, 14, 28, -33, -66, -31, -62, -18, -36, -14, -28,
     ];
     var bishopOffsets = [15, 17, -15, -17];
+
     var rookOffsets = [16, -16, 1, -1];
+    var superRookOffsets = [16, -16, 1, -1, -17, -15];
+
     var kingOffsets = [16, -16, 1, -1, 15, 17, -15, -17];
+
 
     const pieceOffsets = [
         [],
@@ -339,13 +343,6 @@ var Engine = function (boardSize, lightSquare, darkSquare, selectColor) {
         return side === white && playerPower === "blink_knight"
             ? blinkKnightOffsets
             : knightOffsets;
-    }
-    function getSuperRookDiagonals() {
-        if (side === white && playerPower === "super_rook") {
-            const fwd = -16 * (1 - 2 * side);
-            return [fwd - 1, fwd + 1];
-        }
-        return [];
     }
 
     /****************************\
@@ -393,7 +390,10 @@ var Engine = function (boardSize, lightSquare, darkSquare, selectColor) {
                 }
             } else {
                 const slider = pt & 0x04;
-                const dirs = pieceOffsets[pt];
+                let dirs = pieceOffsets[pt];
+                if (pt === ROOK && color === white && playerPower === "super_rook") {
+                    dirs = [16, -16, 1, -1, 17, 15];
+                }
                 for (let d = 0; d < dirs.length; d++) {
                     let tgt = square;
                     do {
@@ -563,7 +563,7 @@ var Engine = function (boardSize, lightSquare, darkSquare, selectColor) {
         let dirs = pieceOffsets[pt];
         if (pt === KNIGHT) dirs = getKnightDirections();
         else if (pt === ROOK && side === white && playerPower === "super_rook")
-            dirs = rookOffsets;
+            dirs = superRookOffsets;
 
         for (let d = 0; d < dirs.length; d++) {
             let tgt = src;
@@ -579,21 +579,6 @@ var Engine = function (boardSize, lightSquare, darkSquare, selectColor) {
                 if (!isCaptures)
                     addMove(moveList, encodeMove(src, tgt, 0, 0, 0, 0, 0));
             } while (slider);
-        }
-
-        // super rook diagonal bonus (1 step)
-        if (pt === ROOK && side === white && playerPower === "super_rook") {
-            for (const offset of getSuperRookDiagonals()) {
-                const tgt = src + offset;
-                if (tgt & 0x88) continue;
-                const tp = mapToOptimized[board[tgt]];
-                if (tp !== e) {
-                    if (mapColor[tp & 0x08] !== side)
-                        addMove(moveList, encodeMove(src, tgt, 0, 1, 0, 0, 0));
-                } else if (!isCaptures) {
-                    addMove(moveList, encodeMove(src, tgt, 0, 0, 0, 0, 0));
-                }
-            }
         }
 
         // Omni Queen Knight jump bonus

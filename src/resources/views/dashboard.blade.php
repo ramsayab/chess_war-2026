@@ -6,8 +6,8 @@
   <title>Dashboard — Chess War</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/style.css?v={{ time() }}">
+  <link rel="stylesheet" href="css/dashboard.css?v={{ time() }}">
 </head>
 <body>
   @php
@@ -71,17 +71,6 @@
               <span>Leaderboard</span>
             </a>
           </li>
-          <li>
-            <a href="/puzzle" class="sidebar-link">
-              <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                <path d="M7.5 10.5c.828 0 1.5-.672 1.5-1.5s-.672-1.5-1.5-1.5-1.5.672-1.5 1.5.672 1.5 1.5 1.5z" />
-                <path d="M16.5 10.5c.828 0 1.5-.672 1.5-1.5s-.672-1.5-1.5-1.5-1.5.672-1.5 1.5.672 1.5 1.5 1.5z" />
-                <path d="M6 16c2 3 10 3 12 0" />
-              </svg>
-              <span>Puzzles</span>
-            </a>
-          </li>
         </ul>
       </aside>
 
@@ -102,103 +91,58 @@
             </div>
           </section>
 
-          <section class="stats-grid animate animate-3">
-            <!-- Winrate Widget -->
-            <div class="stats-card winrate-card">
-              <div class="card-header">
-                <h3>Win Rate</h3>
-              </div>
-              <div class="winrate-visual">
-                <svg viewBox="0 0 36 36" class="circular-chart">
-                  <path class="circle-bg"
-                    d="M18 2.0845
-                      a 15.9155 15.9155 0 0 1 0 31.831
-                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path class="circle"
-                    stroke-dasharray="{{ $winrate }}, 100"
-                    d="M18 2.0845
-                      a 15.9155 15.9155 0 0 1 0 31.831
-                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <text x="18" y="20.35" class="percentage">{{ $winrate }}%</text>
-                </svg>
-              </div>
-              <div class="card-footer">
-                <p>Won <strong>{{ $wonMatches }}</strong> out of <strong>{{ $totalMatches }}</strong> matches</p>
-              </div>
+          <section class="kpi-grid animate animate-3">
+            <div class="kpi-card">
+              <span class="kpi-label">Win Rate</span>
+              <span class="kpi-value">{{ $winrate }}%</span>
             </div>
-
-            <!-- Average Duration Widget -->
-            <div class="stats-card duration-card">
-              <div class="card-header">
-                <h3>Average Duration</h3>
-              </div>
-              <div class="duration-display">
-                <div class="clock-icon-wrapper">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                </div>
-                <div class="duration-value">
-                  <span class="number">{{ $avgMinutes }}</span>
-                  <span class="unit">mins</span>
-                </div>
-              </div>
-              <div class="card-footer">
-                <p>Average time per chess match</p>
-              </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Avg Duration</span>
+              <span class="kpi-value">{{ $avgMinutes }}m</span>
             </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Puzzles Solved</span>
+              <span class="kpi-value">{{ $puzzlesSolved }}/{{ $puzzlesTotal }}</span>
+            </div>
+          </section>
 
-            <!-- Power Usage Stats Widget -->
-            <div class="stats-card powers-card">
-              <div class="card-header">
-                <h3>Power Usage</h3>
+          <!-- Powers Reference Panel -->
+          <section class="overview-section animate animate-4" style="margin-top: 2.5rem; width: 100%;">
+            <div class="section-header">
+              <h2>Master the Privileges</h2>
+              <p>Unlock the secrets of the chess war custom powers. Every card turns standard rules upside down.</p>
+            </div>
+            
+            <div class="powers-guide-grid">
+              <div class="guide-card">
+                <div class="guide-card-icon">♟</div>
+                <h4>Confused Pawn</h4>
+                <p>Can move 1 step forward or backward. Opponent pawns stay normal.</p>
               </div>
-              <div class="powers-usage-list">
-                @php
-                  $powers = [
-                    'blink_knight' => 'Blink Knight',
-                    'super_rook' => 'Super Rook',
-                    'confused_pawn' => 'Confused Pawn',
-                    'undying_king' => 'Undying King',
-                    'omni_queen' => 'Omni Queen',
-                    'grey_bishop' => 'Grey Bishop'
-                  ];
-                  $totalPowersUsed = array_sum($powerCounts);
-                @endphp
-                @foreach($powers as $key => $name)
-                  @php
-                    $count = $powerCounts[$key] ?? 0;
-                    $percent = $totalPowersUsed > 0 ? round(($count / $totalPowersUsed) * 100) : 0;
-                  @endphp
-                  <div class="power-stat-item">
-                    <div class="power-stat-info">
-                      <span class="power-stat-name">{{ $name }}</span>
-                      <span class="power-stat-count">{{ $count }}x ({{ $percent }}%)</span>
-                    </div>
-                    <div class="power-stat-bar-bg">
-                      <div class="power-stat-bar" style="width: {{ $percent }}%"></div>
-                    </div>
-                  </div>
-                @endforeach
-                
-                @php
-                  $noneCount = ($powerCounts[''] ?? 0) + ($powerCounts[null] ?? 0);
-                  $nonePercent = $totalPowersUsed > 0 ? round(($noneCount / $totalPowersUsed) * 100) : 0;
-                @endphp
-                @if($noneCount > 0)
-                  <div class="power-stat-item">
-                    <div class="power-stat-info">
-                      <span class="power-stat-name">No Power / Standard</span>
-                      <span class="power-stat-count">{{ $noneCount }}x ({{ $nonePercent }}%)</span>
-                    </div>
-                    <div class="power-stat-bar-bg">
-                      <div class="power-stat-bar" style="width: {{ $nonePercent }}%; background: #6b6355;"></div>
-                    </div>
-                  </div>
-                @endif
+              <div class="guide-card">
+                <div class="guide-card-icon">♞</div>
+                <h4>Blink Knight</h4>
+                <p>Can make standard jumps or double-length leaps to control the board.</p>
+              </div>
+              <div class="guide-card">
+                <div class="guide-card-icon">♝</div>
+                <h4>Grey Bishop</h4>
+                <p>Can slide sideways by 1 square before sliding diagonally from its new path.</p>
+              </div>
+              <div class="guide-card">
+                <div class="guide-card-icon">♜</div>
+                <h4>Super Rook</h4>
+                <p>Can move vertically/horizontally, and slide diagonally forward to attack.</p>
+              </div>
+              <div class="guide-card">
+                <div class="guide-card-icon">♛</div>
+                <h4>Omni Queen</h4>
+                <p>Holds the combined movement of a Queen and a Knight jump.</p>
+              </div>
+              <div class="guide-card">
+                <div class="guide-card-icon">♚</div>
+                <h4>Undying King</h4>
+                <p>Has 2 lives. The first capture will destroy the attacker and revive the King.</p>
               </div>
             </div>
           </section>
@@ -207,9 +151,111 @@
           <!-- TAB 2: GAME HISTORY -->
           <section class="history-section animate animate-2">
             <div class="history-header">
-              <h2>Match History</h2>
-              <p>Track your performance and drafted powers from your past matches.</p>
+              <h2>Match History & Statistics</h2>
+              <p>Track your performance metrics, power usage, and historical matches.</p>
             </div>
+
+            <!-- Detailed Statistics Grid -->
+            <section class="stats-grid animate animate-3 mb-4" style="margin-bottom: 2.5rem;">
+              <!-- Winrate Widget -->
+              <div class="stats-card winrate-card">
+                <div class="card-header">
+                  <h3>Win Rate</h3>
+                </div>
+                <div class="winrate-visual">
+                  <svg viewBox="0 0 36 36" class="circular-chart">
+                    <path class="circle-bg"
+                      d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path class="circle"
+                      stroke-dasharray="{{ $winrate }}, 100"
+                      d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <text x="18" y="20.35" class="percentage">{{ $winrate }}%</text>
+                  </svg>
+                </div>
+                <div class="card-footer">
+                  <p>Won <strong>{{ $wonMatches }}</strong> out of <strong>{{ $totalMatches }}</strong> matches</p>
+                </div>
+              </div>
+
+              <!-- Average Duration Widget -->
+              <div class="stats-card duration-card">
+                <div class="card-header">
+                  <h3>Average Duration</h3>
+                </div>
+                <div class="duration-display">
+                  <div class="clock-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                  </div>
+                  <div class="duration-value">
+                    <span class="number">{{ $avgMinutes }}</span>
+                    <span class="unit">mins</span>
+                  </div>
+                </div>
+                <div class="card-footer">
+                  <p>Average time per chess match</p>
+                </div>
+              </div>
+
+              <!-- Power Usage Stats Widget -->
+              <div class="stats-card powers-card">
+                <div class="card-header">
+                  <h3>Power Usage</h3>
+                </div>
+                <div class="powers-usage-list">
+                  @php
+                    $powers = [
+                      'blink_knight' => 'Blink Knight',
+                      'super_rook' => 'Super Rook',
+                      'confused_pawn' => 'Confused Pawn',
+                      'undying_king' => 'Undying King',
+                      'omni_queen' => 'Omni Queen',
+                      'grey_bishop' => 'Grey Bishop'
+                    ];
+                    $totalPowersUsed = array_sum($powerCounts);
+                  @endphp
+                  @foreach($powers as $key => $name)
+                    @php
+                      $count = $powerCounts[$key] ?? 0;
+                      $percent = $totalPowersUsed > 0 ? round(($count / $totalPowersUsed) * 100) : 0;
+                    @endphp
+                    <div class="power-stat-item">
+                      <div class="power-stat-info">
+                        <span class="power-stat-name">{{ $name }}</span>
+                        <span class="power-stat-count">{{ $count }}x ({{ $percent }}%)</span>
+                      </div>
+                      <div class="power-stat-bar-bg">
+                        <div class="power-stat-bar" style="width: {{ $percent }}%"></div>
+                      </div>
+                    </div>
+                  @endforeach
+                  
+                  @php
+                    $noneCount = ($powerCounts[''] ?? 0) + ($powerCounts[null] ?? 0);
+                    $nonePercent = $totalPowersUsed > 0 ? round(($noneCount / $totalPowersUsed) * 100) : 0;
+                  @endphp
+                  @if($noneCount > 0)
+                    <div class="power-stat-item">
+                      <div class="power-stat-info">
+                        <span class="power-stat-name">No Power / Standard</span>
+                        <span class="power-stat-count">{{ $noneCount }}x ({{ $nonePercent }}%)</span>
+                      </div>
+                      <div class="power-stat-bar-bg">
+                        <div class="power-stat-bar" style="width: {{ $nonePercent }}%; background: #6b6355;"></div>
+                      </div>
+                    </div>
+                  @endif
+                </div>
+              </div>
+            </section>
 
             @if($matches->isEmpty())
               <div class="empty-history">
