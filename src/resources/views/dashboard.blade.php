@@ -79,8 +79,10 @@
           <div class="sidebar-widget rank-widget">
             <span class="widget-label">Your Rank</span>
             <div class="rank-display">
-              <span class="rank-hash">#</span>
-              <span class="rank-number">{{ $myRank }}</span>
+              @if(is_numeric($myRank))
+                <span class="rank-hash">#</span>
+              @endif
+              <span class="rank-number" style="{{ !is_numeric($myRank) ? 'font-size: 1.6rem;' : '' }}">{{ $myRank }}</span>
             </div>
           </div>
 
@@ -566,6 +568,40 @@
                   @endif
                 </div>
               </div>
+
+              <!-- Difficulty Distribution Widget -->
+              <div class="stats-card difficulty-card">
+                <div class="card-header">
+                  <h3>Difficulty Distribution</h3>
+                </div>
+                <div class="powers-usage-list">
+                  @php
+                    $diffNames = [
+                      100 => 'Beginner',
+                      500 => 'Intermediate',
+                      1000 => 'Professional',
+                      2500 => 'Master',
+                      5000 => 'Grandmaster'
+                    ];
+                    $totalDifficultyMatches = array_sum($difficultyCounts ?? []);
+                  @endphp
+                  @foreach($diffNames as $time => $name)
+                    @php
+                      $count = $difficultyCounts[$time] ?? 0;
+                      $percent = $totalDifficultyMatches > 0 ? round(($count / $totalDifficultyMatches) * 100) : 0;
+                    @endphp
+                    <div class="power-stat-item">
+                      <div class="power-stat-info">
+                        <span class="power-stat-name">{{ $name }}</span>
+                        <span class="power-stat-count">{{ $count }}x ({{ $percent }}%)</span>
+                      </div>
+                      <div class="power-stat-bar-bg">
+                        <div class="power-stat-bar" style="width: {{ $percent }}%; background: #c9a84c;"></div>
+                      </div>
+                    </div>
+                  @endforeach
+                </div>
+              </div>
             </section>
 
             @if($matches->isEmpty())
@@ -588,6 +624,7 @@
                       <th>No.</th>
                       <th>Result</th>
                       <th>Drafted Power</th>
+                      <th>Difficulty</th>
                       <th>Duration</th>
                       <th>Played At</th>
                     </tr>
@@ -607,6 +644,14 @@
                           'grey_bishop' => 'Grey Bishop',
                         ];
                         $powerName = $powersMap[$match->power_type] ?? 'None';
+                        $difficultyNamesMap = [
+                          100 => 'Beginner',
+                          500 => 'Intermediate',
+                          1000 => 'Professional',
+                          2500 => 'Master',
+                          5000 => 'Grandmaster'
+                        ];
+                        $diffName = $difficultyNamesMap[(int)$match->difficulty] ?? 'Professional';
                       @endphp
                       <tr>
                         <td>{{ $matches->count() - $index }}</td>
@@ -620,6 +665,11 @@
                         <td>
                           <span class="power-badge {{ $match->power_type ?: 'no-power' }}">
                             {{ $powerName }}
+                          </span>
+                        </td>
+                        <td>
+                          <span class="power-badge" style="background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.25); color: var(--gold-lt);">
+                            {{ $diffName }}
                           </span>
                         </td>
                         <td class="duration-cell">{{ $minutes }}m {{ $seconds }}s</td>

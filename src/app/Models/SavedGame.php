@@ -14,6 +14,11 @@ class SavedGame extends Model
         'user_id',
         'fen',
         'power_type',
+        'difficulty',
+    ];
+
+    protected $casts = [
+        'difficulty' => 'integer',
     ];
 
     public function user(): BelongsTo

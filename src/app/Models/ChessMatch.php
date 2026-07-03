@@ -17,11 +17,13 @@ class ChessMatch extends Model
         'is_win',
         'total_time',
         'power_type',
+        'difficulty',
     ];
 
     protected $casts = [
         'is_win' => 'boolean',
         'total_time' => 'integer',
+        'difficulty' => 'integer',
     ];
 
     public function user(): BelongsTo

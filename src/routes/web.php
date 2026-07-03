@@ -119,11 +119,51 @@ Route::get('/dashboard', function (Illuminate\Http\Request $request) {
         ->orderByRaw('count(matches.id) desc')
         ->get();
 
-    $myRankIndex = $rankings->search(fn($player) => $player->id === $user->id);
-    $myRank = $myRankIndex !== false ? $myRankIndex + 1 : '-';
+    $isAdmin = ($user->is_admin == 1) || $user->roles()->whereIn('name', ['admin', 'super_admin'])->exists();
+    if ($isAdmin) {
+        $myRank = 'Admin';
+    } else {
+        $myRankIndex = $rankings->search(fn($player) => $player->id == $user->id);
+        $myRank = $myRankIndex !== false ? $myRankIndex + 1 : '-';
+    }
 
-    // 2. Calculate XP and Level
-    $totalXp = ($wonMatches * 100) + (($totalMatches - $wonMatches) * 25) + ($puzzlesSolved * 50);
+    // 2. Calculate XP and Level based on difficulty
+    $difficultyXp = [
+        100 => ['win' => 100, 'loss' => 25],
+        500 => ['win' => 150, 'loss' => 35],
+        1000 => ['win' => 200, 'loss' => 50],
+        2500 => ['win' => 300, 'loss' => 75],
+        5000 => ['win' => 500, 'loss' => 125],
+    ];
+
+    $totalXp = 0;
+    $difficultyCounts = [
+        100 => 0,
+        500 => 0,
+        1000 => 0,
+        2500 => 0,
+        5000 => 0,
+    ];
+
+    foreach ($matches as $m) {
+        $diff = (int)$m->difficulty;
+        if ($diff === 0) {
+            $diff = 1000;
+        }
+        
+        $cfg = $difficultyXp[$diff] ?? ['win' => 200, 'loss' => 50];
+        if ($m->is_win) {
+            $totalXp += $cfg['win'];
+        } else {
+            $totalXp += $cfg['loss'];
+        }
+
+        if (isset($difficultyCounts[$diff])) {
+            $difficultyCounts[$diff]++;
+        }
+    }
+    $totalXp += ($puzzlesSolved * 50);
+
     $level = floor($totalXp / 1000) + 1;
     $xpInCurrentLevel = $totalXp % 1000;
     $nextLevelXp = 1000;
@@ -196,7 +236,7 @@ Route::get('/dashboard', function (Illuminate\Http\Request $request) {
         'leaderboard', 'puzzlesSolved', 'puzzlesTotal',
         'myRank', 'level', 'xpInCurrentLevel', 'nextLevelXp', 'xpProgressPercent',
         'dailyTip', 'winrateDiff', 'winratePoints', 'durationDiff', 'durationPoints',
-        'solvedToday', 'puzzlePoints', 'recentMatchesForPreview'
+        'solvedToday', 'puzzlePoints', 'recentMatchesForPreview', 'difficultyCounts'
     ));
 })->middleware('auth')->name('dashboard');
 
@@ -213,6 +253,7 @@ Route::post('/matches', function (Illuminate\Http\Request $request) {
         'is_win' => 'required|boolean',
         'total_time' => 'required|integer',
         'power_type' => 'nullable|string',
+        'difficulty' => 'nullable|integer',
     ]);
 
     $match = \App\Models\ChessMatch::create([
@@ -220,6 +261,7 @@ Route::post('/matches', function (Illuminate\Http\Request $request) {
         'is_win' => $request->is_win,
         'total_time' => $request->total_time,
         'power_type' => $request->power_type,
+        'difficulty' => $request->difficulty,
     ]);
 
     return response()->json([

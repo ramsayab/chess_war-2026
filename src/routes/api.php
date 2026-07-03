@@ -101,6 +101,7 @@ Route::middleware('auth')->group(function () {
         $request->validate([
             'fen' => 'required|string',
             'power_type' => 'nullable|string',
+            'difficulty' => 'nullable|integer',
         ]);
 
         $savedGame = \App\Models\SavedGame::updateOrCreate(
@@ -108,6 +109,7 @@ Route::middleware('auth')->group(function () {
             [
                 'fen' => $request->fen,
                 'power_type' => $request->power_type,
+                'difficulty' => $request->difficulty,
             ]
         );
 

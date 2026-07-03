@@ -26,6 +26,7 @@ test('authenticated user can save match history', function () {
         'is_win' => true,
         'total_time' => 240,
         'power_type' => 'blink_knight',
+        'difficulty' => 1000,
     ]);
     
     $response->assertStatus(200);
@@ -38,5 +39,6 @@ test('authenticated user can save match history', function () {
         'is_win' => true,
         'total_time' => 240,
         'power_type' => 'blink_knight',
+        'difficulty' => 1000,
     ]);
 });

@@ -622,6 +622,12 @@
         box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
       }
 
+      /* Ensure dragging and animated chess pieces are always visible above the board layout */
+      body > .piece-417db {
+        z-index: 999999 !important;
+        pointer-events: none;
+      }
+
       .game-arena-grid {
         width: 100%;
         display: flex;
@@ -1093,6 +1099,18 @@
               <!-- Dynamically populated cards -->
             </div>
 
+            <!-- Pre-game Difficulty Selection -->
+            <div style="margin: 24px auto 32px; max-width: 380px; text-align: left; background: rgba(201, 168, 76, 0.03); border: 1px solid rgba(201, 168, 76, 0.15); border-radius: 12px; padding: 18px 24px;">
+              <label for="pre-game-difficulty" style="font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-bright); display: block; margin-bottom: 8px; font-weight: 600;">Select AI Difficulty</label>
+              <select id="pre-game-difficulty" class="btn-chess-control" style="width: 100%; text-align: left; background: rgba(10, 16, 28, 0.95); color: var(--game-gold); outline: none; border: 1px solid var(--game-border); padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                <option value="100" style="background: #0d111a; color: var(--game-gold);">Beginner (100ms) • Normal XP</option>
+                <option value="500" style="background: #0d111a; color: var(--game-gold);">Intermediate (500ms) • +50% XP</option>
+                <option value="1000" selected style="background: #0d111a; color: var(--game-gold);">Professional (1000ms) • Double XP</option>
+                <option value="2500" style="background: #0d111a; color: var(--game-gold);">Master (2500ms) • Triple XP</option>
+                <option value="5000" style="background: #0d111a; color: var(--game-gold);">Grandmaster (5000ms) • 5x XP</option>
+              </select>
+            </div>
+
             <div class="footer">
               <p class="status" id="shuffle-status">No power selected — choose one card above.</p>
               <button class="begin" id="beginBtn" disabled>Begin Battle →</button>
@@ -1181,20 +1199,19 @@
                   <div class="game-control-panel">
                       <div class="controls-group-title" style="margin-top: 0; border-bottom: none; padding-bottom: 0;">Game Controls</div>
                       <div class="game-btn-grid" style="margin-bottom: 12px;">
+                          @php
+                              $user = auth()->user();
+                              $isAdminUser = ($user->is_admin == 1) || $user->roles()->whereIn('name', ['admin', 'super_admin'])->exists();
+                          @endphp
                           <button id="newgame" class="btn-chess-control">New</button>
-                          <button id="makemove" class="btn-chess-control">Move</button>
-                          <button id="takeback" class="btn-chess-control">Undo</button>
+                          @if($isAdminUser)
+                              <button id="makemove" class="btn-chess-control">Move</button>
+                              <button id="takeback" class="btn-chess-control">Undo</button>
+                          @endif
                           <button id="flipboard" class="btn-chess-control">Flip</button>
                       </div>
 
-                      <div class="controls-group-title" style="border-bottom: none; padding-bottom: 0;">AI Difficulty</div>
-                      <div style="margin-bottom: 12px; width: 100%;">
-                          <select id="ai-difficulty" class="btn-chess-control" style="width: 100%; text-align: left; background: rgba(201, 168, 76, 0.04); color: var(--game-gold); outline: none;">
-                              <option value="150" style="background: #0d111a; color: var(--game-gold);">Novice</option>
-                              <option value="1000" selected style="background: #0d111a; color: var(--game-gold);">Intermediate</option>
-                              <option value="2500" style="background: #0d111a; color: var(--game-gold);">Master</option>
-                          </select>
-                      </div>
+
 
                       <div class="controls-group-title" style="border-bottom: none; padding-bottom: 0;">Session</div>
                       <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
@@ -1558,7 +1575,8 @@
         _token: '{{ csrf_token() }}',
         is_win: isWin ? 1 : 0,
         total_time: duration,
-        power_type: window.activePlayerPower
+        power_type: window.activePlayerPower,
+        difficulty: window.gameDifficulty || 1000
       },
       success: function(response) {
         console.log('Match history saved successfully:', response);
@@ -1814,6 +1832,8 @@
     window.powerSelected = true;
     startTimer(); // Start the game timer
     
+    window.gameDifficulty = parseInt($('#pre-game-difficulty').val()) || 1000;
+
     window.activePlayerPower = chosenPower.value;
     if (window.engine && typeof window.engine.setPlayerPower === 'function') {
       window.engine.setPlayerPower(chosenPower.value);
@@ -1932,7 +1952,7 @@
   function makeMove() {
     // make computer move
     setTimeout(function() {
-      const searchTime = parseInt($('#ai-difficulty').val()) || 1000;
+      const searchTime = window.gameDifficulty || 1000;
       let bestMove = engine.searchTime(searchTime);
       
       let sourceStr = engine.squareToString(engine.getMoveSource(bestMove));
@@ -2149,7 +2169,8 @@
       data: {
         _token: '{{ csrf_token() }}',
         fen: currentFen,
-        power_type: currentPower
+        power_type: currentPower,
+        difficulty: window.gameDifficulty || 1000
       },
       success: function(response) {
         alert('Game state saved successfully! You can resume this match later from the dashboard.');
@@ -2173,6 +2194,7 @@
           // Set active player power
           window.activePlayerPower = savedGame.power_type;
           window.powerSelected = true;
+          window.gameDifficulty = savedGame.difficulty || 1000;
           
           if (typeof engine.setPlayerPower === 'function') {
             engine.setPlayerPower(savedGame.power_type);
