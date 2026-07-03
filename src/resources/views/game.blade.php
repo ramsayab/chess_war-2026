@@ -50,7 +50,8 @@
       }
 
       html, body {
-        min-height: 100%;
+        height: 100vh;
+        overflow: hidden;
       }
 
       body.game-page {
@@ -61,7 +62,8 @@
           radial-gradient(circle at 20% 20%, rgba(201, 168, 76, 0.18), transparent 30%),
           radial-gradient(circle at 85% 10%, rgba(105, 131, 191, 0.16), transparent 24%),
           linear-gradient(180deg, var(--game-bg) 0%, var(--game-bg-alt) 48%, #060b14 100%);
-        overflow-x: hidden;
+        overflow: hidden;
+        height: 100vh;
       }
 
       body.game-page::before {
@@ -91,11 +93,12 @@
 
       .game-scene {
         position: relative;
-        min-height: 100vh;
-        padding: 40px 16px 28px;
+        height: 100vh;
+        padding: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
       }
 
       .game-scene::before,
@@ -593,21 +596,463 @@
       button.begin.active:active { transform: translateY(0); }
 
       .game-shell-compact {
-        width: min(440px, 100%) !important;
-        padding: 24px 22px !important;
-        margin: 0 !important;
+        width: 610px !important;
+        max-width: 610px !important;
+        padding: 15px !important;
+        margin: 0 auto !important;
+      }
+
+      #chessboard {
+        width: 580px !important;
+        height: 580px !important;
+        margin: 0 auto;
+        border: 1px solid rgba(201, 168, 76, 0.3);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
       }
 
       .game-arena-grid {
+        width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 24px;
-        margin: 15px auto;
-        width: 100%;
-        max-width: 440px;
       }
 
+      /* 3-Column Layout */
+      .game-arena-columns {
+        display: grid;
+        grid-template-columns: 260px 610px 280px;
+        gap: 24px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+      }
+      .arena-col-left {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 260px;
+      }
+      .arena-col-middle {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 610px;
+        align-items: center;
+      }
+      .arena-col-right {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: 280px;
+      }
+
+      /* Player Info Cards & Timers */
+      .player-info-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 14px;
+        background: rgba(14, 21, 34, 0.75);
+        border: 1px solid rgba(201, 168, 76, 0.15);
+        border-radius: 12px;
+        width: 100%;
+        max-width: 610px;
+        margin: 0 auto;
+        transition: all 0.3s ease;
+      }
+      .player-info-card.active-turn {
+        border-color: var(--game-gold);
+        box-shadow: 0 0 15px rgba(201, 168, 76, 0.25);
+        background: rgba(201, 168, 76, 0.08);
+      }
+      .player-info-card__left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+      }
+      .player-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--gold-bright), var(--gold));
+        color: #111;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 13px;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        transition: transform 0.3s;
+      }
+      .player-info-card.active-turn .player-avatar {
+        transform: scale(1.08);
+        box-shadow: 0 0 8px var(--game-gold);
+      }
+      .player-name {
+        font-family: 'Cinzel', serif;
+        font-size: 13px;
+        color: var(--ivory);
+        font-weight: 500;
+      }
+      .player-clock {
+        font-family: monospace;
+        font-size: 15px;
+        color: var(--gold-bright);
+        background: rgba(0, 0, 0, 0.4);
+        padding: 2px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(251, 191, 36, 0.15);
+        min-width: 54px;
+        text-align: center;
+      }
+      .player-info-card.active-turn .player-clock {
+        color: #fff;
+        border-color: var(--game-gold);
+      }
+
+      /* Compact Captured Pieces Tray */
+      .captured-tray-compact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        min-height: 18px;
+        align-items: center;
+        margin-left: 8px;
+      }
+      .captured-tray-compact .captured-piece {
+        font-size: 14px;
+        line-height: 1;
+        opacity: 0.85;
+      }
+      .captured-tray-compact .captured-piece.black-piece {
+        color: #8b949e;
+        text-shadow: 0 0 1px #000;
+      }
+      .advantage-badge {
+        font-size: 10px;
+        background: rgba(52, 211, 153, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+        padding: 0px 4px;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-left: 6px;
+        display: inline-block;
+      }
+
+      /* Active Power Side Panel */
+      .active-power-side-panel {
+        background: rgba(14, 21, 34, 0.85);
+        border: 1px solid rgba(201, 168, 76, 0.2);
+        border-radius: 18px;
+        padding: 14px;
+        width: 100%;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        text-align: center;
+      }
+      .power-avatar-display {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: radial-gradient(circle, var(--card-hi), #000);
+        border: 1px solid var(--gold-dim);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin: 0 auto 10px;
+        color: var(--gold-bright);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        position: relative;
+      }
+      .power-lives-badge {
+        position: absolute;
+        bottom: -6px;
+        right: -6px;
+        background: #ff5252;
+        color: white;
+        font-size: 9px;
+        padding: 1px 4.5px;
+        border-radius: 4px;
+        font-weight: bold;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        display: none;
+      }
+
+      /* Move History / Notation scrolling list */
+      .move-history-panel {
+        background: rgba(14, 21, 34, 0.85);
+        border: 1px solid rgba(201, 168, 76, 0.2);
+        border-radius: 18px;
+        padding: 14px;
+        width: 100%;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      }
+      .move-list-scroll {
+        height: 160px;
+        overflow-y: auto;
+        padding-right: 4px;
+        font-size: 13px;
+      }
+      .move-list-scroll::-webkit-scrollbar {
+        width: 4px;
+      }
+      .move-list-scroll::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1);
+      }
+      .move-list-scroll::-webkit-scrollbar-thumb {
+        background: var(--gold-dim);
+        border-radius: 2px;
+      }
+      .move-row {
+        display: flex;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+      }
+      .move-number {
+        width: 32px;
+        color: var(--slate-dim);
+        font-weight: 500;
+      }
+      .move-white, .move-black {
+        flex: 1;
+        color: var(--ivory);
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+
+      /* Action controls separation */
+      .controls-group-title {
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--slate-dim);
+        margin-top: 10px;
+        margin-bottom: 6px;
+        text-align: center;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 4px;
+      }
+
+      .game-control-panel {
+        background: rgba(14, 21, 34, 0.85);
+        border: 1px solid rgba(201, 168, 76, 0.2);
+        border-radius: 18px;
+        padding: 14px;
+        width: 100%;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      }
+      .game-btn-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        width: 100%;
+      }
+      .btn-chess-control {
+        background: rgba(201, 168, 76, 0.04);
+        border: 1px solid rgba(201, 168, 76, 0.25);
+        color: var(--game-gold);
+        font-family: 'Jost', sans-serif;
+        font-size: 12.5px;
+        font-weight: 500;
+        padding: 7px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        text-decoration: none;
+      }
+      .btn-chess-control:hover {
+        background: rgba(201, 168, 76, 0.12);
+        border-color: var(--game-gold);
+        color: #fff;
+      }
+      .btn-chess-primary {
+        background: var(--game-gold);
+        border: 1px solid var(--game-gold);
+        color: #0b0f19;
+        font-family: 'Jost', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 9px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        display: block;
+        width: 100%;
+        text-decoration: none;
+        border-style: none;
+      }
+      .btn-chess-primary:hover {
+        background: var(--gold-bright);
+        box-shadow: 0 0 12px rgba(240, 211, 138, 0.4);
+      }
+      .btn-chess-danger {
+        background: rgba(239, 68, 68, 0.04);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        color: #f87171;
+        font-family: 'Jost', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 9px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        display: block;
+        width: 100%;
+        text-decoration: none;
+      }
+      .btn-chess-danger:hover {
+        background: rgba(239, 68, 68, 0.12);
+        border-color: #ef4444;
+        color: #fff;
+      }
+
+      /* Check Highlights */
+      .square-55d63.in-check {
+        animation: checkPulse 1.2s infinite alternate;
+      }
+      @keyframes checkPulse {
+        0% { box-shadow: inset 0 0 12px 4px rgba(239, 68, 68, 0.5) !important; }
+        100% { box-shadow: inset 0 0 20px 8px rgba(239, 68, 68, 0.95) !important; }
+      }
+
+      /* Status Toast Alert */
+      .game-status-banner {
+        margin: 0 auto 12px;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 13px;
+        letter-spacing: 0.05em;
+        text-align: center;
+        width: 100%;
+        max-width: 440px;
+        display: none;
+        animation: slideIn 0.3s ease-out;
+      }
+      .game-status-banner.status-check {
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #f87171;
+      }
+      .game-status-banner.status-turn {
+        background: rgba(52, 211, 153, 0.1);
+        border: 1px solid rgba(52, 211, 153, 0.3);
+        color: #34d399;
+      }
+      .game-status-banner.status-thinking {
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        color: #fbbf24;
+      }
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Watermark Chess pieces background decoration */
+      .chess-decor-watermark {
+        position: fixed;
+        font-size: 20vw;
+        color: rgba(201, 168, 76, 0.015);
+        user-select: none;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .chess-decor-watermark.left-piece {
+        left: -3%;
+        top: 25%;
+        transform: rotate(-12deg);
+      }
+      .chess-decor-watermark.right-piece {
+        right: -3%;
+        bottom: 15%;
+        transform: rotate(12deg);
+      }
+
+      /* Power Grid Vector visual illustration */
+      .vector-board {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        width: 120px;
+        height: 120px;
+        border: 1.5px solid var(--game-gold);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 10px auto;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      }
+      .vector-sq {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      .vector-sq.light {
+        background: #f4efe3;
+      }
+      .vector-sq.dark {
+        background: #c9a84c;
+      }
+      .vector-piece {
+        font-size: 16px;
+        color: #111;
+        z-index: 2;
+      }
+      .vector-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+      }
+      .vector-line {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #3b82f6;
+        box-shadow: 0 0 6px rgba(59, 130, 246, 0.8);
+      }
+
+      /* Mobile Layout adaptation */
+      @media (max-width: 991px) {
+        .game-arena-columns {
+          flex-direction: column;
+          align-items: center;
+        }
+        .arena-col-left {
+          order: 2;
+          max-width: 440px;
+          width: 100%;
+          flex-direction: row;
+          justify-content: space-between;
+        }
+        .arena-col-middle {
+          order: 1;
+          width: 100%;
+        }
+        .arena-col-right {
+          order: 3;
+          max-width: 440px;
+          width: 100%;
+        }
+        .captured-panel, .active-power-side-panel {
+          flex: 1;
+          max-width: none;
+        }
+      }
     </style>
     
   </head>
@@ -648,43 +1093,102 @@
         <!-- ==================== ACTIVE GAMEPLAY AREA ==================== -->
         <div class="col-12" id="game-arena-wrapper" style="display: none; text-align: center; width: 100%;">
           
-          <!-- 1. Active Power Header (Outside Board Box) -->
-          <div id="active-power-header" style="display: none; margin-bottom: 24px; padding: 12px 24px; border-radius: 16px; background: rgba(201, 168, 76, 0.08); border: 1px solid rgba(201, 168, 76, 0.18); text-align: center; max-width: 400px; margin-left: auto; margin-right: auto;">
-              <span style="font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--game-gold); display: block; margin-bottom: 4px;">Active Power</span>
-              <h2 id="active-power-title" style="font-family: 'Cormorant Garamond', serif; font-size: 2.1rem; color: #fff7e4; margin: 0; line-height: 1.1;">-</h2>
-              <p id="active-power-desc" style="color: rgba(244, 239, 227, 0.74); font-size: 0.95rem; margin: 6px 0 0;"></p>
-              <div id="king-lives-indicator" style="display: none; margin-top: 8px; font-size: 0.9rem; color: #ff5252; font-weight: 500;"></div>
-          </div>
+          <!-- Watermark Chess Pieces -->
+          <div class="chess-decor-watermark left-piece">♞</div>
+          <div class="chess-decor-watermark right-piece">♛</div>
 
-          <!-- 3. Side-by-Side Flex Layout (Board Box) -->
-          <div class="game-arena-grid">
+          <div class="game-arena-columns">
               
-              <!-- Left side: The Board Box (Compact game-shell) -->
-              <div class="game-shell game-shell-compact">
-                  <!-- chessboard -->
-                  <div id="chessboard" style="width: 400px;"></div>
-                  
-                  <!-- controls inside board box -->
-                  <div class="row game-controls mt-4">
-                      @if(auth()->user()->is_admin || auth()->user()->hasRole('super_admin'))
-                      <div class="col btn-group">
-                        <button id="newgame" class="btn btn-outline-secondary">New</button>
-                        <button id="makemove" class="btn btn-outline-secondary">Move</button>
-                        <button id="takeback" class="btn btn-outline-secondary">Undo</button>
-                        <button id="flipboard" class="btn btn-outline-secondary">Flip</button>
+              <!-- LEFT COLUMN: Active Power -->
+              <div class="arena-col-left">
+                  <!-- Active Power side panel -->
+                  <div class="active-power-side-panel">
+                      <span style="font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--game-gold); display: block; margin-bottom: 4px; font-weight: 500;">Active Privilege</span>
+                      <div class="power-avatar-display">
+                          <span id="power-avatar-icon">♟</span>
+                          <span class="power-lives-badge" id="king-lives-badge">2</span>
                       </div>
-                      @endif
-
-                      <div class="col btn-group mt-3" style="width: 100%; display: flex; justify-content: center; gap: 0.5rem;">
-                        <button id="save-game-btn" class="btn btn-outline-secondary" style="background: rgba(40, 167, 69, 0.12); border-color: rgba(40, 167, 69, 0.35); color: #fff;">Save Game</button>
-                        <a href="/dashboard" class="btn btn-outline-secondary">Exit to Dashboard</a>
-                      </div>
+                      <h4 id="active-power-title" style="font-family: 'Cinzel', serif; font-size: 1.25rem; color: #fff7e4; margin: 0 0 6px;">-</h4>
+                      <p id="active-power-desc" style="color: rgba(244, 239, 227, 0.7); font-size: 0.82rem; margin: 0 auto; line-height: 1.45;"></p>
+                      
+                      <!-- Visual Grid movement vectors -->
+                      <div class="vector-board" id="power-vector-board"></div>
                   </div>
               </div>
+              
+              <!-- MIDDLE COLUMN: Player Info & Chessboard -->
+              <div class="arena-col-middle">
+                  
+                  <!-- Toast banner status messages -->
+                  <div id="status-banner" class="game-status-banner">Your Turn</div>
 
+                  <!-- Opponent Info Card -->
+                  <div class="player-info-card" id="bot-info-card">
+                      <div class="player-info-card__left">
+                          <div class="player-avatar" style="background: radial-gradient(circle, #f87171, #ef4444); flex-shrink: 0;">AI</div>
+                          <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                              <span class="player-name">Wukong AI</span>
+                              <!-- Bot captures (White pieces captured by Bot) next to name -->
+                              <div class="captured-tray-compact" id="bot-captured-tray"></div>
+                          </div>
+                          <span id="bot-captured-adv"></span>
+                      </div>
+                      <div class="player-clock" id="bot-time">00:00</div>
+                  </div>
+
+                  <!-- The Chessboard inside compact shell container -->
+                  <div class="game-shell game-shell-compact">
+                      <div id="chessboard"></div>
+                  </div>
+
+                  <!-- Player Info Card -->
+                  <div class="player-info-card" id="player-info-card">
+                      <div class="player-info-card__left">
+                          <div class="player-avatar" style="flex-shrink: 0;">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
+                          <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                              <span class="player-name">{{ auth()->user()->name }}</span>
+                              <!-- Player captures (Black pieces captured by Player) next to name -->
+                              <div class="captured-tray-compact" id="player-captured-tray"></div>
+                          </div>
+                          <span id="player-captured-adv"></span>
+                      </div>
+                      <div class="player-clock" id="player-time">00:00</div>
+                  </div>
+              </div>
+              
+              <!-- RIGHT COLUMN: Move History & Controls -->
+              <div class="arena-col-right">
+                  
+                  <!-- Move History / Notation -->
+                  <div class="move-history-panel">
+                      <h3 style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; text-align: center; border-bottom: 1px solid rgba(201,164,76,0.15); padding-bottom: 5px;">Move History</h3>
+                      <div class="move-list-scroll" id="move-list-scroll">
+                          <!-- Filled dynamically via javascript -->
+                      </div>
+                  </div>
+
+                  <!-- Grouped Controls panel -->
+                  <div class="game-control-panel">
+                      <div class="controls-group-title" style="margin-top: 0; border-bottom: none; padding-bottom: 0;">Game Controls</div>
+                      <div class="game-btn-grid" style="margin-bottom: 12px;">
+                          <button id="newgame" class="btn-chess-control">New</button>
+                          <button id="makemove" class="btn-chess-control">Move</button>
+                          <button id="takeback" class="btn-chess-control">Undo</button>
+                          <button id="flipboard" class="btn-chess-control">Flip</button>
+                      </div>
+
+                      <div class="controls-group-title" style="border-bottom: none; padding-bottom: 0;">Session</div>
+                      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                          <button id="save-game-btn" class="btn-chess-primary">Save Match</button>
+                          <a href="/dashboard" class="btn-chess-danger">Exit Arena</a>
+                      </div>
+                  </div>
+
+              </div>
+              
           </div>
 
-        </div>
+        </div></div>
 
       </div>
     </div>    
@@ -694,6 +1198,278 @@
 <script>
   window.isAdmin = {{ (auth()->user()?->is_admin || auth()->user()?->hasRole('super_admin')) ? 'true' : 'false' }};
   let selectedSquare = null;
+
+  // New In-game logic variables
+  window.gameMoves = [];
+  let playerTime = 0;
+  let botTime = 0;
+  let timerInterval = null;
+
+  const powerVectors = {
+    confused_pawn: [
+      { r: 1, c: 2, t: 'dot' },
+      { r: 3, c: 2, t: 'dot' }
+    ],
+    blink_knight: [
+      { r: 0, c: 1, t: 'dot' }, { r: 0, c: 3, t: 'dot' },
+      { r: 1, c: 0, t: 'dot' }, { r: 1, c: 4, t: 'dot' },
+      { r: 3, c: 0, t: 'dot' }, { r: 3, c: 4, t: 'dot' },
+      { r: 4, c: 1, t: 'dot' }, { r: 4, c: 3, t: 'dot' }
+    ],
+    super_rook: [
+      { r: 0, c: 2, t: 'line' }, { r: 1, c: 2, t: 'line' },
+      { r: 3, c: 2, t: 'line' }, { r: 4, c: 2, t: 'line' },
+      { r: 2, c: 0, t: 'line' }, { r: 2, c: 1, t: 'line' },
+      { r: 2, c: 3, t: 'line' }, { r: 2, c: 4, t: 'line' },
+      { r: 1, c: 1, t: 'dot' }, { r: 1, c: 3, t: 'dot' }
+    ],
+    undying_king: [
+      { r: 1, c: 1, t: 'dot' }, { r: 1, c: 2, t: 'dot' }, { r: 1, c: 3, t: 'dot' },
+      { r: 2, c: 1, t: 'dot' },                          { r: 2, c: 3, t: 'dot' },
+      { r: 3, c: 1, t: 'dot' }, { r: 3, c: 2, t: 'dot' }, { r: 3, c: 3, t: 'dot' }
+    ],
+    omni_queen: [
+      { r: 0, c: 0, t: 'line' }, { r: 0, c: 2, t: 'line' }, { r: 0, c: 4, t: 'line' },
+      { r: 1, c: 1, t: 'line' }, { r: 1, c: 2, t: 'line' }, { r: 1, c: 3, t: 'line' },
+      { r: 2, c: 0, t: 'line' }, { r: 2, c: 1, t: 'line' },                          { r: 2, c: 3, t: 'line' }, { r: 2, c: 4, t: 'line' },
+      { r: 3, c: 1, t: 'line' }, { r: 3, c: 2, t: 'line' }, { r: 3, c: 3, t: 'line' },
+      { r: 4, c: 0, t: 'line' }, { r: 4, c: 2, t: 'line' }, { r: 4, c: 4, t: 'line' },
+      { r: 0, c: 1, t: 'dot' }, { r: 0, c: 3, t: 'dot' },
+      { r: 1, c: 0, t: 'dot' }, { r: 1, c: 4, t: 'dot' },
+      { r: 3, c: 0, t: 'dot' }, { r: 3, c: 4, t: 'dot' },
+      { r: 4, c: 1, t: 'dot' }, { r: 4, c: 3, t: 'dot' }
+    ],
+    grey_bishop: [
+      { r: 0, c: 0, t: 'line' }, { r: 0, c: 4, t: 'line' },
+      { r: 1, c: 1, t: 'line' }, { r: 1, c: 3, t: 'line' },
+      { r: 3, c: 1, t: 'line' }, { r: 3, c: 3, t: 'line' },
+      { r: 4, c: 0, t: 'line' }, { r: 4, c: 4, t: 'line' },
+      { r: 2, c: 1, t: 'dot' }, { r: 2, c: 3, t: 'dot' }
+    ]
+  };
+
+  function renderPowerBoard(powerType) {
+    const container = $('#power-vector-board');
+    container.empty();
+    
+    const vectors = powerVectors[powerType] || [];
+    
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        const isDark = (r + c) % 2 === 1;
+        const isCenter = r === 2 && c === 2;
+        
+        let content = '';
+        if (isCenter) {
+          const glyph = powerGlyphs[powerType] || '♟';
+          content = `<span class="vector-piece">${glyph}</span>`;
+        } else {
+          const vector = vectors.find(v => v.r === r && v.c === c);
+          if (vector) {
+            if (vector.t === 'dot') {
+              content = `<div class="vector-dot"></div>`;
+            } else if (vector.t === 'line') {
+              content = `<div class="vector-line"></div>`;
+            }
+          }
+        }
+        
+        container.append(`
+          <div class="vector-sq ${isDark ? 'dark' : 'light'}">
+            ${content}
+          </div>
+        `);
+      }
+    }
+  }
+
+  function startClocks() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (!window.powerSelected) return;
+      const side = engine.getSide(); // 0 = White, 1 = Black
+      if (side === 0) {
+        playerTime++;
+        updateClockUI(0);
+      } else {
+        botTime++;
+        updateClockUI(1);
+      }
+    }, 1000);
+  }
+
+  function stopClocks() {
+    if (timerInterval) clearInterval(timerInterval);
+  }
+
+  function resetClocks() {
+    playerTime = 0;
+    botTime = 0;
+    updateClockUI(0);
+    updateClockUI(1);
+  }
+
+  function formatTime(sec) {
+    const mins = Math.floor(sec / 60);
+    const secs = sec % 60;
+    return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+  }
+
+  function updateClockUI(side) {
+    if (side === 0) {
+      $('#player-time').text(formatTime(playerTime));
+    } else {
+      $('#bot-time').text(formatTime(botTime));
+    }
+  }
+
+  function addMoveToHistory(moveStr) {
+    window.gameMoves.push(moveStr);
+    renderMoveHistory();
+  }
+
+  function renderMoveHistory() {
+    const container = $('#move-list-scroll');
+    container.empty();
+    
+    for (let i = 0; i < window.gameMoves.length; i += 2) {
+      const moveNum = Math.floor(i / 2) + 1;
+      const whiteMove = window.gameMoves[i];
+      const blackMove = window.gameMoves[i + 1] || '';
+      
+      container.append(`
+        <div class="move-row">
+          <div class="move-number">${moveNum}.</div>
+          <div class="move-white">${whiteMove}</div>
+          <div class="move-black">${blackMove}</div>
+        </div>
+      `);
+    }
+    
+    if (container[0]) {
+      container.scrollTop(container[0].scrollHeight);
+    }
+  }
+
+  function formatMove(moveStr) {
+    if (!moveStr || moveStr.length < 4) return moveStr;
+    const from = moveStr.substring(0, 2);
+    const to = moveStr.substring(2, 4);
+    const promo = moveStr.length > 4 ? '=' + moveStr.substring(4).toUpperCase() : '';
+    return from + '-' + to + promo;
+  }
+
+  function highlightLastMove(from, to) {
+    // Empty to remove trail highlight/shadows of the last move
+  }
+
+  function updateTurnHighlight() {
+    if (!window.engine) return;
+    const side = engine.getSide();
+    if (side === 0) {
+      $('#player-info-card').addClass('active-turn');
+      $('#bot-info-card').removeClass('active-turn');
+      
+      $('#status-banner').removeClass('status-thinking status-check').addClass('status-turn').text('Your Turn').fadeIn(200);
+    } else {
+      $('#bot-info-card').addClass('active-turn');
+      $('#player-info-card').removeClass('active-turn');
+      
+      $('#status-banner').removeClass('status-turn status-check').addClass('status-thinking').text('AI is thinking...').fadeIn(200);
+    }
+    
+    // Check if in check
+    const inCheck = engine.inCheck(side);
+    $('.square-55d63').removeClass('in-check');
+    if (inCheck) {
+      $('#status-banner').removeClass('status-turn status-thinking').addClass('status-check').text('Check!').fadeIn(200);
+      
+      // Highlight king square
+      let kingSquareName = "";
+      for (let sq = 0; sq < 128; sq++) {
+        if ((sq & 0x88) === 0) {
+          const pc = engine.getPiece(sq);
+          if (side === 0 && pc === 1) { // White King
+            kingSquareName = engine.squareToString(sq);
+            break;
+          }
+          if (side === 1 && pc === 7) { // Black King
+            kingSquareName = engine.squareToString(sq);
+            break;
+          }
+        }
+      }
+      if (kingSquareName) {
+        $('.square-' + kingSquareName).addClass('in-check');
+      }
+    }
+  }
+
+  function updateCapturedPiecesUI() {
+    if (!window.engine) return;
+    const currentCounts = {
+      P: 0, N: 0, B: 0, R: 0, Q: 0, K: 0,
+      p: 0, n: 0, b: 0, r: 0, q: 0, k: 0
+    };
+    
+    for (let sq = 0; sq < 128; sq++) {
+      if ((sq & 0x88) === 0) {
+        const pc = engine.getPiece(sq);
+        if (pc === 1) currentCounts.K++;
+        else if (pc === 2) currentCounts.P++;
+        else if (pc === 3) currentCounts.N++;
+        else if (pc === 4) currentCounts.B++;
+        else if (pc === 5) currentCounts.R++;
+        else if (pc === 6) currentCounts.Q++;
+        else if (pc === 7) currentCounts.k++;
+        else if (pc === 8) currentCounts.p++;
+        else if (pc === 9) currentCounts.n++;
+        else if (pc === 10) currentCounts.b++;
+        else if (pc === 11) currentCounts.r++;
+        else if (pc === 12) currentCounts.q++;
+      }
+    }
+    
+    const whiteCaptured = [];
+    const blackCaptured = [];
+    
+    let whiteScore = 0;
+    let blackScore = 0;
+    
+    // White pieces captured by Black
+    for (let i = 0; i < 8 - currentCounts.P; i++) { whiteCaptured.push('♟'); blackScore += 1; }
+    for (let i = 0; i < 2 - currentCounts.N; i++) { whiteCaptured.push('♞'); blackScore += 3; }
+    for (let i = 0; i < 2 - currentCounts.B; i++) { whiteCaptured.push('♝'); blackScore += 3; }
+    for (let i = 0; i < 2 - currentCounts.R; i++) { whiteCaptured.push('♜'); blackScore += 5; }
+    for (let i = 0; i < 1 - currentCounts.Q; i++) { whiteCaptured.push('♛'); blackScore += 9; }
+    
+    // Black pieces captured by White
+    for (let i = 0; i < 8 - currentCounts.p; i++) { blackCaptured.push('♟'); whiteScore += 1; }
+    for (let i = 0; i < 2 - currentCounts.n; i++) { blackCaptured.push('♞'); whiteScore += 3; }
+    for (let i = 0; i < 2 - currentCounts.b; i++) { blackCaptured.push('♝'); whiteScore += 3; }
+    for (let i = 0; i < 2 - currentCounts.r; i++) { blackCaptured.push('♜'); whiteScore += 5; }
+    for (let i = 0; i < 1 - currentCounts.q; i++) { blackCaptured.push('♛'); whiteScore += 9; }
+    
+    const playerTray = $('#player-captured-tray');
+    playerTray.empty();
+    blackCaptured.forEach(char => {
+      playerTray.append(`<span class="captured-piece black-piece">${char}</span>`);
+    });
+    
+    const botTray = $('#bot-captured-tray');
+    botTray.empty();
+    whiteCaptured.forEach(char => {
+      botTray.append(`<span class="captured-piece">${char}</span>`);
+    });
+    
+    $('#player-captured-adv').empty();
+    $('#bot-captured-adv').empty();
+    if (whiteScore > blackScore) {
+      $('#player-captured-adv').html(`<span class="advantage-badge">+${whiteScore - blackScore}</span>`);
+    } else if (blackScore > whiteScore) {
+      $('#bot-captured-adv').html(`<span class="advantage-badge">+${blackScore - whiteScore}</span>`);
+    }
+  }
 
   function removeHighlights() {
     $('.square-55d63').removeClass('highlight-hint has-piece selected-square');
@@ -819,6 +1595,8 @@
     }
 
     if (isGameOver) {
+      stopClocks();
+      $('#status-banner').hide();
       const endTime = Date.now();
       const duration = gameStartTime ? Math.round((endTime - gameStartTime) / 1000) : 0;
       
@@ -841,7 +1619,13 @@
     window.activePlayerPower = '';
     window.moveCounter = 0;
     
-
+    stopClocks();
+    resetClocks();
+    window.gameMoves = [];
+    renderMoveHistory();
+    removeHighlights();
+    $('.square-55d63').removeClass('last-move-highlight in-check');
+    $('#status-banner').hide();
 
     // Hide gameplay arena wrapper
     $('#game-arena-wrapper').hide();
@@ -897,12 +1681,12 @@
     if (window.engine && typeof window.engine.getKingLives === 'function') {
       const lives = window.engine.getKingLives();
       if (window.activePlayerPower === 'undying_king') {
-        $('#king-lives-indicator').show().text(`Lives remaining: ${lives} / 2`);
+        $('#king-lives-badge').show().text(lives);
         if (lives === 1 && lastKingLives === 2) {
           alert("Your Undying King lost a life! The attacking piece has been destroyed.");
         }
       } else {
-        $('#king-lives-indicator').hide();
+        $('#king-lives-badge').hide();
       }
       lastKingLives = lives;
     }
@@ -1014,14 +1798,23 @@
     
     lastKingLives = 2;
 
-    // Populate active header details
+    // Populate active side panel details
     $('#active-power-title').text(chosenPower.name);
     $('#active-power-desc').text(chosenPower.desc);
+    $('#power-avatar-icon').text(powerGlyphs[chosenPower.value] || '♟');
+    renderPowerBoard(chosenPower.value);
     updateKingLivesUI();
+
+    // Start clocks & reset history
+    resetClocks();
+    startClocks();
+    window.gameMoves = [];
+    renderMoveHistory();
+    $('.square-55d63').removeClass('last-move-highlight in-check');
+    removeHighlights();
 
     // Transition to gameplay
     $('#game-pre-area').fadeOut(300, function() {
-      $('#active-power-header').show();
       $('#game-arena-wrapper').fadeIn(300, function() {
         if (!board) {
           board = Chessboard('chessboard', config);
@@ -1029,6 +1822,8 @@
           board.position('start');
         }
         engine.setBoard(engine.START_FEN);
+        updateTurnHighlight();
+        updateCapturedPiecesUI();
       });
     });
   });
@@ -1041,11 +1836,26 @@
   
   // handle take back button click
   $('#takeback').on('click', function() {
-    // take move back
+    // take move back twice (bot move + player move)
+    engine.takeBack();
     engine.takeBack();
     
     // update board position
-    board.position(engine.generateFen());
+    board.position(engine.generateFen(), true);
+
+    // update move log
+    window.gameMoves.pop();
+    window.gameMoves.pop();
+    renderMoveHistory();
+
+    // Reset square highlights
+    $('.square-55d63').removeClass('last-move-highlight in-check');
+    removeHighlights();
+
+    // update panels
+    updateTurnHighlight();
+    updateCapturedPiecesUI();
+    updateKingLivesUI();
   });
   
   // handle flip board button click
@@ -1099,13 +1909,22 @@
     // make computer move
     setTimeout(function() {
       let bestMove = engine.searchTime(1000); // search for 1 second
+      
+      let sourceStr = engine.squareToString(engine.getMoveSource(bestMove));
+      let targetStr = engine.squareToString(engine.getMoveTarget(bestMove));
+      
       engine.makeMove(bestMove);
       
+      addMoveToHistory(formatMove(sourceStr + targetStr));
+      highlightLastMove(sourceStr, targetStr);
+      updateTurnHighlight();
+      updateCapturedPiecesUI();
+
       // Update King Lives UI if Undying King triggered
       updateKingLivesUI();
       
       let fen = engine.generateFen();
-      board.position(fen);
+      board.position(fen, true);
 
       // Check if engine's move ended the game
       checkGameStatus();
@@ -1144,14 +1963,16 @@
     engine.makeMove(validMove);    
     engine.printBoard();
 
+    addMoveToHistory(formatMove(source + target));
+    highlightLastMove(source, target);
+    updateTurnHighlight();
+    updateCapturedPiecesUI();
+
     // Check if user's move ended the game
     if (checkGameStatus()) return;
     
     // make engine move
     makeMove();
-    
-    // TODO: update game status
-    // isGameOver();
   }
 
   // update the board position after the piece snap
@@ -1194,7 +2015,10 @@
     onDrop: onDrop,
     onSnapEnd: onSnapEnd,
     onMouseoverSquare: onMouseoverSquare,
-    onMouseoutSquare: onMouseoutSquare
+    onMouseoutSquare: onMouseoutSquare,
+    moveSpeed: 300,
+    snapbackSpeed: 300,
+    snapSpeed: 250
   }
   
   // create chess board widget instance
@@ -1237,8 +2061,13 @@
         engine.makeMove(validMove);    
         engine.printBoard();
         
+        addMoveToHistory(formatMove(selectedSquare + square));
+        highlightLastMove(selectedSquare, square);
+        updateTurnHighlight();
+        updateCapturedPiecesUI();
+
         // Update UI board position
-        board.position(engine.generateFen());
+        board.position(engine.generateFen(), true);
 
         selectedSquare = null;
         removeHighlights();
@@ -1328,19 +2157,17 @@
           const powerName = power ? power.name : 'None';
           const powerDesc = power ? power.desc : '';
           
-          // Populate active power header
+          // Populate active power panel
           $('#active-power-title').text(powerName);
           $('#active-power-desc').text(powerDesc);
-          
-          const lives = (engine.getKingLives && typeof engine.getKingLives === 'function') ? engine.getKingLives() : 2;
-          lastKingLives = lives;
+          $('#power-avatar-icon').text(powerGlyphs[savedGame.power_type] || '♟');
+          renderPowerBoard(savedGame.power_type);
           updateKingLivesUI();
           
           // Hide pre-game area immediately
           $('#game-pre-area').hide();
           
-          // Show active power header and gameplay arena wrapper
-          $('#active-power-header').show();
+          // Show gameplay arena wrapper
           $('#game-arena-wrapper').show();
           
           // Set board FEN in engine and board UI
@@ -1353,6 +2180,16 @@
           // Initialize board widget since container is now visible
           board = Chessboard('chessboard', config);
           board.position(fenToLoad);
+          
+          // Start clocks & reset history
+          resetClocks();
+          startClocks();
+          window.gameMoves = [];
+          renderMoveHistory();
+          $('.square-55d63').removeClass('last-move-highlight in-check');
+          removeHighlights();
+          updateTurnHighlight();
+          updateCapturedPiecesUI();
           
           // Start the play duration timer
           startTimer();
