@@ -50,8 +50,7 @@
       }
 
       html, body {
-        height: 100vh;
-        overflow: hidden;
+        min-height: 100vh;
       }
 
       body.game-page {
@@ -62,6 +61,11 @@
           radial-gradient(circle at 20% 20%, rgba(201, 168, 76, 0.18), transparent 30%),
           radial-gradient(circle at 85% 10%, rgba(105, 131, 191, 0.16), transparent 24%),
           linear-gradient(180deg, var(--game-bg) 0%, var(--game-bg-alt) 48%, #060b14 100%);
+        overflow-y: auto;
+      }
+
+      /* Lock viewport only when active game is showing */
+      body.game-page.game-active {
         overflow: hidden;
         height: 100vh;
       }
@@ -93,11 +97,17 @@
 
       .game-scene {
         position: relative;
-        height: 100vh;
-        padding: 16px;
+        min-height: 100vh;
+        padding: 40px 16px;
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+
+      body.game-page.game-active .game-scene {
+        height: 100vh;
+        min-height: 100vh;
+        padding: 16px;
         overflow: hidden;
       }
 
@@ -1177,6 +1187,15 @@
                           <button id="flipboard" class="btn-chess-control">Flip</button>
                       </div>
 
+                      <div class="controls-group-title" style="border-bottom: none; padding-bottom: 0;">AI Difficulty</div>
+                      <div style="margin-bottom: 12px; width: 100%;">
+                          <select id="ai-difficulty" class="btn-chess-control" style="width: 100%; text-align: left; background: rgba(201, 168, 76, 0.04); color: var(--game-gold); outline: none;">
+                              <option value="150" style="background: #0d111a; color: var(--game-gold);">Novice</option>
+                              <option value="1000" selected style="background: #0d111a; color: var(--game-gold);">Intermediate</option>
+                              <option value="2500" style="background: #0d111a; color: var(--game-gold);">Master</option>
+                          </select>
+                      </div>
+
                       <div class="controls-group-title" style="border-bottom: none; padding-bottom: 0;">Session</div>
                       <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
                           <button id="save-game-btn" class="btn-chess-primary">Save Match</button>
@@ -1543,9 +1562,11 @@
       },
       success: function(response) {
         console.log('Match history saved successfully:', response);
+        alert("Match results saved to Leaderboard!");
       },
       error: function(xhr) {
         console.error('Failed to save match history:', xhr.responseText);
+        alert("Failed to save match result: " + (xhr.responseJSON?.message || xhr.statusText));
       }
     });
   }
@@ -1626,10 +1647,12 @@
     removeHighlights();
     $('.square-55d63').removeClass('last-move-highlight in-check');
     $('#status-banner').hide();
+    
+    // Disable full-screen mode for card selection
+    $('body').removeClass('game-active');
 
     // Hide gameplay arena wrapper
     $('#game-arena-wrapper').hide();
-    $('#active-power-header').hide();
     
     // Show pre-game area
     $('#game-pre-area').fadeIn(300);
@@ -1815,6 +1838,7 @@
 
     // Transition to gameplay
     $('#game-pre-area').fadeOut(300, function() {
+      $('body').addClass('game-active');
       $('#game-arena-wrapper').fadeIn(300, function() {
         if (!board) {
           board = Chessboard('chessboard', config);
@@ -1908,7 +1932,8 @@
   function makeMove() {
     // make computer move
     setTimeout(function() {
-      let bestMove = engine.searchTime(1000); // search for 1 second
+      const searchTime = parseInt($('#ai-difficulty').val()) || 1000;
+      let bestMove = engine.searchTime(searchTime);
       
       let sourceStr = engine.squareToString(engine.getMoveSource(bestMove));
       let targetStr = engine.squareToString(engine.getMoveTarget(bestMove));
@@ -2166,6 +2191,9 @@
           
           // Hide pre-game area immediately
           $('#game-pre-area').hide();
+          
+          // Lock viewport for gameplay
+          $('body').addClass('game-active');
           
           // Show gameplay arena wrapper
           $('#game-arena-wrapper').show();
