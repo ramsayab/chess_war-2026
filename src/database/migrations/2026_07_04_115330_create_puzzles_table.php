@@ -27,6 +27,9 @@ return new class extends Migration
         // Update puzzle_attempts table
         Schema::table('puzzle_attempts', function (Blueprint $table) {
             $table->dropForeign(['user_id']);
+        });
+
+        Schema::table('puzzle_attempts', function (Blueprint $table) {
             $table->dropUnique(['user_id', 'puzzle_id']);
             $table->dropColumn('puzzle_id');
         });

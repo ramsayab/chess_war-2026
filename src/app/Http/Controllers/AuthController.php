@@ -29,12 +29,15 @@ class AuthController extends Controller
             'password' => 'required|min:6|confirmed',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+        $user->assignRole('user');
 
         return redirect('/login')->with('success', 'Register berhasil');
     }
@@ -126,6 +129,9 @@ class AuthController extends Controller
                 'google_id' => $googleId,
                 'avatar_url' => $avatarUrl,
             ]);
+
+            \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+            $user->assignRole('user');
         }
 
         Auth::login($user);
