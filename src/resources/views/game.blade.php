@@ -337,8 +337,8 @@
       }
 
       @media (max-width: 768px) {
-        .power-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+        .cards {
+          grid-template-columns: repeat(2, 1fr);
         }
       }
 
@@ -348,7 +348,7 @@
         }
 
         .game-shell {
-          padding: 22px 14px 18px;
+          padding: 22px 14px 18px !important;
           border-radius: 24px;
         }
 
@@ -356,8 +356,13 @@
           flex-basis: calc(50% - 0.5rem);
         }
 
-        .power-grid {
+        .cards {
           grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        .card {
+          padding: 20px 16px;
         }
       }
 
@@ -1045,6 +1050,7 @@
       /* Mobile Layout adaptation */
       @media (max-width: 991px) {
         .game-arena-columns {
+          display: flex;
           flex-direction: column;
           align-items: center;
         }
@@ -1067,6 +1073,10 @@
         .captured-panel, .active-power-side-panel {
           flex: 1;
           max-width: none;
+        }
+        #chessboard {
+          width: min(100vw - 64px, 580px) !important;
+          height: min(100vw - 64px, 580px) !important;
         }
       }
     </style>

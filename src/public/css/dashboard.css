@@ -650,6 +650,14 @@ body {
 
 /* ── RESPONSIVE STYLES ── */
 @media (max-width: 900px) {
+    .dash-nav {
+        padding: 0 1rem;
+    }
+
+    .user-badge span {
+        display: none;
+    }
+
     .dash-container {
         flex-direction: column;
         gap: 1.5rem;
@@ -658,6 +666,7 @@ body {
 
     .dash-sidebar {
         width: 100%;
+        position: static !important;
     }
 
     .sidebar-menu {
@@ -676,12 +685,48 @@ body {
         font-size: 0.78rem;
     }
 
+    .sidebar-widgets-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
     .stats-grid {
         grid-template-columns: 1fr;
     }
     
     .stats-card {
         min-height: auto;
+    }
+
+    .kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .powers-guide-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .powers-guide-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .recent-match-card {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 1rem;
+    }
+
+    .recent-match-card > div {
+        width: 100%;
+        justify-content: space-between;
     }
 }
 
