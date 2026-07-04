@@ -126,6 +126,9 @@
             <div style="display: flex; gap: 1rem; justify-content: flex-start; margin-top: 1.5rem; flex-wrap: wrap;">
               <a class="play-now-btn" href="/game">Play Now</a>
               <a class="play-now-btn" href="/puzzle" style="background: transparent; color: var(--gold); border: 1px solid var(--gold); box-shadow: none;">Play Puzzles</a>
+              @if($user?->is_admin || $user?->hasRole('super_admin'))
+                <button class="play-now-btn" id="ai-generate-btn" style="background: transparent; color: #ffb703; border: 1px solid #ffb703; box-shadow: none; cursor: pointer;">⚡ AI Generate Puzzle</button>
+              @endif
               @if(isset($savedGame) && $savedGame)
                 <a class="play-now-btn" href="/game?resume=true" style="background: transparent; color: var(--gold-lt); border: 1px solid var(--border); box-shadow: none;">Resume Game</a>
               @endif
@@ -737,5 +740,185 @@
   </div>
 
   <script src="js/main.js"></script>
+
+  @if($user?->is_admin || $user?->hasRole('super_admin'))
+      <!-- AI Generate Dialog -->
+      <dialog id="generate-puzzle-dialog" class="ai-dialog">
+          <h3 class="ai-dialog-title">⚡ AI Puzzle Generator</h3>
+          <form method="dialog" id="ai-generator-form">
+              <div class="ai-dialog-group">
+                  <label class="ai-dialog-label">Difficulty</label>
+                  <select id="ai-difficulty" class="ai-dialog-select">
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                  </select>
+              </div>
+              <div class="ai-dialog-group">
+                  <label class="ai-dialog-label">Moves Limit (Mate in X)</label>
+                  <select id="ai-moves-limit" class="ai-dialog-select">
+                      <option value="1">1 Move (Mate in 1)</option>
+                      <option value="2">2 Moves (Mate in 2)</option>
+                      <option value="3">3 Moves (Mate in 3)</option>
+                  </select>
+              </div>
+              <div class="ai-dialog-buttons">
+                  <button type="button" id="close-dialog-btn" class="play-now-btn" style="background: transparent; color: var(--gold-lt); border: 1px solid var(--border); box-shadow: none; padding: 0.5rem 1rem; font-size: 0.85rem; cursor: pointer;">Cancel</button>
+                  <button type="submit" id="submit-generate-btn" class="play-now-btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; cursor: pointer;">Generate</button>
+              </div>
+          </form>
+      </dialog>
+
+      <div id="puzzle-toast" class="puzzle-toast"></div>
+
+      <style>
+      .ai-dialog {
+          border: none;
+          border-radius: 16px;
+          background: #1a1a1a;
+          color: #f3f4f6;
+          padding: 2.25rem;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+          width: 90%;
+          max-width: 400px;
+          font-family: 'Jost', sans-serif;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .ai-dialog::backdrop {
+          background: rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(8px);
+      }
+      .ai-dialog-title {
+          margin-top: 0;
+          color: #ffb703;
+          font-size: 1.4rem;
+          font-weight: 600;
+          margin-bottom: 1.5rem;
+          letter-spacing: 0.02em;
+      }
+      .ai-dialog-group {
+          margin-bottom: 1.25rem;
+      }
+      .ai-dialog-label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-size: 0.85rem;
+          letter-spacing: 0.03em;
+          color: #9ca3af;
+          text-transform: uppercase;
+      }
+      .ai-dialog-select {
+          width: 100%;
+          padding: 0.75rem;
+          border-radius: 8px;
+          background: #0d0d0d;
+          color: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          font-size: 0.95rem;
+          outline: none;
+          transition: border-color 0.2s;
+      }
+      .ai-dialog-select:focus {
+          border-color: #ffb703;
+      }
+      .ai-dialog-buttons {
+          display: flex;
+          gap: 1rem;
+          justify-content: flex-end;
+          margin-top: 1.75rem;
+      }
+      .puzzle-toast {
+          position: fixed;
+          bottom: 2rem;
+          right: 2rem;
+          background: #10b981;
+          color: white;
+          padding: 1rem 1.5rem;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          z-index: 9999;
+          font-family: 'Jost', sans-serif;
+          transform: translateY(100px);
+          opacity: 0;
+          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+      }
+      .puzzle-toast.show {
+          transform: translateY(0);
+          opacity: 1;
+      }
+      .puzzle-toast.danger {
+          background: #ef4444;
+      }
+      </style>
+
+      <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+      <script>
+      $(document).ready(function() {
+          function showToast(message, type = 'success') {
+              const toast = $('#puzzle-toast');
+              toast.text(message);
+              toast.removeClass('danger success').addClass(type);
+              toast.addClass('show');
+              
+              setTimeout(() => {
+                  toast.removeClass('show');
+              }, 4000);
+          }
+
+          $('#ai-generate-btn').on('click', function() {
+              const aiDialog = document.getElementById('generate-puzzle-dialog');
+              if (aiDialog) {
+                  aiDialog.showModal();
+              }
+          });
+
+          $('#close-dialog-btn').on('click', function() {
+              const aiDialog = document.getElementById('generate-puzzle-dialog');
+              if (aiDialog) {
+                  aiDialog.close();
+              }
+          });
+
+          $('#ai-generator-form').on('submit', function(e) {
+              e.preventDefault();
+              
+              const difficulty = $('#ai-difficulty').val();
+              const movesLimit = $('#ai-moves-limit').val();
+              const submitBtn = $('#submit-generate-btn');
+              
+              submitBtn.text('Generating...').prop('disabled', true);
+              
+              $.ajax({
+                  url: '/api/puzzle/generate',
+                  type: 'POST',
+                  data: {
+                      difficulty: difficulty,
+                      moves_limit: movesLimit,
+                      _token: '{{ csrf_token() }}'
+                  },
+                  success: function(response) {
+                      submitBtn.text('Generate').prop('disabled', false);
+                      if (response.success && response.puzzle) {
+                          const aiDialog = document.getElementById('generate-puzzle-dialog');
+                          if (aiDialog) aiDialog.close();
+                          showToast('Puzzle successfully generated by AI! Redirecting to play...');
+                          
+                          setTimeout(() => {
+                              window.location.href = '/puzzle';
+                          }, 1500);
+                      } else {
+                          showToast(response.message || 'Generation failed.', 'danger');
+                      }
+                  },
+                  error: function(xhr) {
+                      submitBtn.text('Generate').prop('disabled', false);
+                      const err = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred during generation.';
+                      showToast(err, 'danger');
+                  }
+              });
+          });
+      });
+      </script>
+  @endif
 </body>
 </html>

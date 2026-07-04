@@ -40,9 +40,10 @@ class PuzzleAttemptResource extends Resource
                     ->required()
                     ->label('Player'),
 
-                Forms\Components\TextInput::make('puzzle_id')
+                Forms\Components\Select::make('puzzle_id')
+                    ->options(\App\Models\Puzzle::pluck('name', 'id')->toArray())
                     ->required()
-                    ->placeholder('e.g. puzzle_1'),
+                    ->label('Puzzle'),
 
                 Forms\Components\Toggle::make('solved')
                     ->label('Solved?')
@@ -70,7 +71,8 @@ class PuzzleAttemptResource extends Resource
                     ->label('Player')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('puzzle_id')
+                Tables\Columns\TextColumn::make('puzzle.name')
+                    ->label('Puzzle')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('solved')

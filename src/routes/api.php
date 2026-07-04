@@ -140,7 +140,7 @@ Route::middleware('auth')->group(function () {
     // 6. Puzzle - Record Completion
     Route::post('/puzzle/complete', function (Illuminate\Http\Request $request) {
         $request->validate([
-            'puzzle_id' => 'required|string',
+            'puzzle_id' => 'required|exists:puzzles,id',
             'attempts' => 'required|integer|min:1',
         ]);
 
@@ -173,6 +173,121 @@ Route::middleware('auth')->group(function () {
             'success' => true,
             'solved_puzzles' => $attempts,
         ]);
+    });
+
+    // 8. Puzzle - AI Generate
+    Route::post('/puzzle/generate', function (Illuminate\Http\Request $request) {
+        if (!auth()->user()->is_admin && !auth()->user()->hasRole('super_admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only admins can generate puzzles.',
+            ], 403);
+        }
+
+        $apiKey = config('services.gemini.key');
+        if (empty($apiKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gemini API key is not configured.',
+            ], 500);
+        }
+
+        $request->validate([
+            'difficulty' => 'required|string|in:easy,medium,hard',
+            'moves_limit' => 'required|integer|min:1|max:3',
+        ]);
+
+        $difficulty = $request->difficulty;
+        $movesLimit = (int) $request->moves_limit;
+
+        $prompt = "Create a valid chess puzzle with the following settings:
+- Difficulty: {$difficulty}
+- Moves Limit: {$movesLimit} (mate in {$movesLimit})
+
+The response must be in valid JSON format matching the following schema:
+{
+    \"name\": \"Creative name of the puzzle\",
+    \"difficulty\": \"{$difficulty}\",
+    \"diff_label\": \"Mate in {$movesLimit}\",
+    \"fen\": \"A valid FEN string representing the starting position where it is the player's turn to move (e.g. if player is white, FEN side to move is 'w', if player is black, FEN side to move is 'b'). The position MUST be a real, legally reachable chess position.\",
+    \"description\": \"Short instruction (e.g. 'White to move. Deliver checkmate in {$movesLimit}.')\",
+    \"side_to_move\": \"white\" or \"black\",
+    \"solution\": [\"move1\", \"move2\", ..., \"moveM\"],
+    \"moves_limit\": {$movesLimit}
+}
+
+IMPORTANT rules for the solution and FEN:
+1. The solution moves must be in standard UCI notation (e.g. 'e2e4', 'g8f6', 'd2d4', 'e7e5').
+2. The solution format is alternating player moves and opponent responses: [PlayerMove1, OpponentResponse1, PlayerMove2, OpponentResponse2, ..., PlayerMoveN]. The length of the array must be exactly 2 * {$movesLimit} - 1.
+3. The final move in the solution MUST deliver a forced checkmate (mate in {$movesLimit}).
+4. Ensure all moves are legal from the starting FEN and lead to a forced win.
+5. Do NOT include any markdown block (like ```json) in the response text itself since structured JSON format is requested.";
+
+        try {
+            $response = Illuminate\Support\Facades\Http::post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                'contents' => [
+                    [
+                        'parts' => [
+                            [
+                                'text' => $prompt
+                            ]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'responseMimeType' => 'application/json',
+                ]
+            ]);
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gemini API request failed: ' . $response->body(),
+                ], 500);
+            }
+
+            $result = $response->json();
+            $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+            if (empty($text)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid response structure from Gemini API.',
+                ], 500);
+            }
+
+            $puzzleData = json_decode($text, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE || empty($puzzleData['fen']) || empty($puzzleData['solution'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI generated invalid puzzle data format.',
+                    'raw' => $text,
+                ], 500);
+            }
+
+            $puzzle = \App\Models\Puzzle::create([
+                'name' => $puzzleData['name'] ?? 'AI Generated Puzzle',
+                'difficulty' => $puzzleData['difficulty'] ?? $difficulty,
+                'diff_label' => $puzzleData['diff_label'] ?? "Mate in {$movesLimit}",
+                'fen' => $puzzleData['fen'],
+                'description' => $puzzleData['description'] ?? 'Solve the puzzle',
+                'side_to_move' => $puzzleData['side_to_move'] ?? 'white',
+                'solution' => $puzzleData['solution'],
+                'moves_limit' => $movesLimit,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'puzzle' => $puzzle,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred during generation: ' . $e->getMessage(),
+            ], 500);
+        }
     });
 });
 

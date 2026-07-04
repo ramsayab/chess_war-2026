@@ -100,7 +100,7 @@ Route::get('/dashboard', function (Illuminate\Http\Request $request) {
 
     // Fetch puzzle progress
     $puzzlesSolved = $user->puzzleAttempts()->where('solved', true)->count();
-    $puzzlesTotal = 10; // Total hardcoded puzzles
+    $puzzlesTotal = \App\Models\Puzzle::count();
 
     // 1. Calculate Player Rank
     $rankings = \App\Models\User::select('users.id')
@@ -245,7 +245,8 @@ Route::get('/game', function () {
 })->middleware('auth')->name('game');
 
 Route::get('/puzzle', function () {
-    return view('puzzle');
+    $puzzles = \App\Models\Puzzle::all();
+    return view('puzzle', compact('puzzles'));
 })->middleware('auth')->name('puzzle');
 
 Route::post('/matches', function (Illuminate\Http\Request $request) {

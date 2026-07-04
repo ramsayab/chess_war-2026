@@ -19,6 +19,7 @@ class PuzzleAttempt extends Model
     ];
 
     protected $casts = [
+        'puzzle_id' => 'integer',
         'solved' => 'boolean',
         'attempts' => 'integer',
         'solved_at' => 'datetime',
@@ -27,5 +28,10 @@ class PuzzleAttempt extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function puzzle(): BelongsTo
+    {
+        return $this->belongsTo(Puzzle::class);
     }
 }

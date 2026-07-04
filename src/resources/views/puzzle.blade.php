@@ -29,7 +29,6 @@
 
     <div class="puzzle-wrapper">
 
-        <!-- SIDEBAR: Puzzle List -->
         <aside class="puzzle-sidebar">
             <div class="puzzle-sidebar-inner" id="puzzle-list">
                 <h3 class="puzzle-sidebar-title">♟ Puzzles</h3>
@@ -86,118 +85,7 @@
 // The final player move must deliver checkmate.
 // ═══════════════════════════════════════
 
-const PUZZLES = [
-    {
-        id: 'puzzle_1',
-        name: 'Scholar\'s Mate',
-        difficulty: 'easy',
-        diffLabel: 'Mate in 1',
-        fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4',
-        description: 'White to move. Deliver checkmate in 1.',
-        sideToMove: 'white',
-        solution: ['h5f7'],
-        movesLimit: 1
-    },
-    {
-        id: 'puzzle_2',
-        name: 'Back Rank Mate',
-        difficulty: 'easy',
-        diffLabel: 'Mate in 1',
-        fen: '6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1',
-        description: 'White to move. Back rank mate in 1.',
-        sideToMove: 'white',
-        solution: ['e1e8'],
-        movesLimit: 1
-    },
-    {
-        id: 'puzzle_3',
-        name: 'Queen Infiltration',
-        difficulty: 'easy',
-        diffLabel: 'Mate in 2',
-        fen: 'r1b2r1k/pp3p1p/2n2P1p/4p2Q/8/8/PPP2PPP/R3K2R w KQ - 0 1',
-        description: 'White to move. Find checkmate in 2.',
-        sideToMove: 'white',
-        solution: ['h5h6', 'h8g8', 'h6g7'],
-        movesLimit: 2
-    },
-    {
-        id: 'puzzle_4',
-        name: 'Queen Mate',
-        difficulty: 'easy',
-        diffLabel: 'Mate in 1',
-        fen: 'k7/8/2K5/8/8/8/1Q6/8 w - - 0 1',
-        description: 'White to move. Deliver checkmate.',
-        sideToMove: 'white',
-        solution: ['b2b7'],
-        movesLimit: 1
-    },
-    {
-        id: 'puzzle_5',
-        name: 'Bishop Mate',
-        difficulty: 'easy',
-        diffLabel: 'Mate in 1',
-        fen: 'k7/P7/1K6/8/8/8/8/1B6 w - - 0 1',
-        description: 'White to move. Checkmate in 1.',
-        sideToMove: 'white',
-        solution: ['b1e4'],
-        movesLimit: 1
-    },
-    {
-        id: 'puzzle_6',
-        name: 'Rook Ladder',
-        difficulty: 'medium',
-        diffLabel: 'Mate in 2',
-        fen: '4k3/8/8/8/8/8/1R6/R3K3 w - - 0 1',
-        description: 'White to move. Checkmate in 2 moves.',
-        sideToMove: 'white',
-        solution: ['a1a7', 'e8d8', 'b2b8'],
-        movesLimit: 2
-    },
-    {
-        id: 'puzzle_7',
-        name: 'Queen & King Dance',
-        difficulty: 'medium',
-        diffLabel: 'Mate in 2',
-        fen: 'k7/8/1K6/8/8/8/8/1Q6 w - - 0 1',
-        description: 'White to move. Deliver mate in 2.',
-        sideToMove: 'white',
-        solution: ['b1h7', 'a8b8', 'h7b7'],
-        movesLimit: 2
-    },
-    {
-        id: 'puzzle_8',
-        name: 'Rook Roller',
-        difficulty: 'medium',
-        diffLabel: 'Mate in 2',
-        fen: 'k7/p7/2K5/8/8/8/1R6/8 w - - 0 1',
-        description: 'White to move. Find mate in 2.',
-        sideToMove: 'white',
-        solution: ['b2h2', 'a8b8', 'h2h8'],
-        movesLimit: 2
-    },
-    {
-        id: 'puzzle_9',
-        name: 'Rook Rollercoaster',
-        difficulty: 'hard',
-        diffLabel: 'Mate in 3',
-        fen: 'k7/8/2K5/8/8/8/8/B3R3 w - - 0 1',
-        description: 'White to move. Deliver mate in 3.',
-        sideToMove: 'white',
-        solution: ['e1e8', 'a8a7', 'a1d4', 'a7a6', 'e8a8'],
-        movesLimit: 3
-    },
-    {
-        id: 'puzzle_10',
-        name: 'Royal Zugzwang',
-        difficulty: 'hard',
-        diffLabel: 'Mate in 3',
-        fen: 'k7/8/2K5/8/8/8/8/R7 w - - 0 1',
-        description: 'White to move. Move the rook to mate in 3.',
-        sideToMove: 'white',
-        solution: ['a1h1', 'a8b8', 'h1h7', 'b8c8', 'h7h8'],
-        movesLimit: 3
-    }
-];
+const PUZZLES = @json($puzzles);
 
 // ═══════════════════════════════════════
 // ENGINE & STATE
@@ -565,6 +453,80 @@ $('#puzzle-next-btn').on('click', function() {
     const idx = PUZZLES.findIndex(p => p.id === currentPuzzle.id);
     const nextIdx = (idx + 1) % PUZZLES.length;
     loadPuzzle(nextIdx);
+});
+
+// ═══════════════════════════════════════
+// AI GENERATOR INTEGRATION
+// ═══════════════════════════════════════
+
+function showToast(message, type = 'success') {
+    let toast = $('#puzzle-toast');
+    if (toast.length === 0) {
+        toast = $('<div id="puzzle-toast" class="puzzle-toast"></div>');
+        $('body').append(toast);
+    }
+    toast.text(message);
+    toast.removeClass('danger success').addClass(type);
+    toast.addClass('show');
+    
+    setTimeout(() => {
+        toast.removeClass('show');
+    }, 4000);
+}
+
+const aiDialog = document.getElementById('generate-puzzle-dialog');
+
+$('#ai-generate-btn').on('click', function() {
+    if (aiDialog) {
+        aiDialog.showModal();
+    }
+});
+
+$('#close-dialog-btn').on('click', function() {
+    if (aiDialog) {
+        aiDialog.close();
+    }
+});
+
+$('#ai-generator-form').on('submit', function(e) {
+    e.preventDefault();
+    
+    const difficulty = $('#ai-difficulty').val();
+    const movesLimit = $('#ai-moves-limit').val();
+    const submitBtn = $('#submit-generate-btn');
+    
+    submitBtn.text('Generating AI Puzzle...').prop('disabled', true);
+    
+    $.ajax({
+        url: '/api/puzzle/generate',
+        type: 'POST',
+        data: {
+            difficulty: difficulty,
+            moves_limit: movesLimit,
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            submitBtn.text('Generate').prop('disabled', false);
+            if (response.success && response.puzzle) {
+                if (aiDialog) aiDialog.close();
+                showToast('Chess puzzle successfully generated by AI!');
+                
+                // Add the new puzzle to our array
+                PUZZLES.push(response.puzzle);
+                
+                // Re-render list and select the new one
+                renderPuzzleList();
+                loadPuzzle(PUZZLES.length - 1);
+            } else {
+                showToast(response.message || 'Generation failed.', 'danger');
+            }
+        },
+        error: function(xhr) {
+            submitBtn.text('Generate').prop('disabled', false);
+            const err = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred during generation.';
+            showToast(err, 'danger');
+        }
+    });
 });
 
 </script>
