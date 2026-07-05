@@ -1049,10 +1049,22 @@
 
       /* Mobile Layout adaptation */
       @media (max-width: 991px) {
+        body.game-page.game-active {
+          overflow-y: auto !important;
+          height: auto !important;
+        }
+        body.game-page.game-active .game-scene {
+          overflow-y: auto !important;
+          height: auto !important;
+          min-height: 100vh;
+          align-items: flex-start !important;
+          padding: 20px 8px !important;
+        }
         .game-arena-columns {
           display: flex;
           flex-direction: column;
           align-items: center;
+          gap: 16px;
         }
         .arena-col-left {
           order: 2;
@@ -1073,6 +1085,11 @@
         .captured-panel, .active-power-side-panel {
           flex: 1;
           max-width: none;
+        }
+        .game-shell-compact {
+          width: 100% !important;
+          max-width: 610px !important;
+          padding: 12px !important;
         }
         #chessboard {
           width: min(100vw - 64px, 580px) !important;
@@ -2263,4 +2280,11 @@
     // New game flow
     runShufflingAnimation();
   }
+
+  // Handle board resizing on window width changes (especially for mobile/tablet screen rotations)
+  $(window).on('resize', function() {
+    if (board) {
+      board.resize();
+    }
+  });
 </script>
