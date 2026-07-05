@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v={{ time() }}">
   <link rel="stylesheet" href="css/dashboard.css?v={{ time() }}">
+  @livewireStyles
 </head>
 <body>
   @php
@@ -97,21 +98,7 @@
             </div>
           </div>
 
-          <!-- Daily Chess Tip Widget -->
-          <div class="sidebar-widget tip-widget">
-            <div class="tip-header">
-              <svg class="tip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .3 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
-                <line x1="9" y1="18" x2="15" y2="18" />
-                <line x1="10" y1="22" x2="14" y2="22" />
-              </svg>
-              <span>Chess Tip</span>
-            </div>
-            <p class="tip-text">"{{ $dailyTip->tip }}"</p>
-            @if($dailyTip->author)
-              <span class="tip-author">&mdash; {{ $dailyTip->author }}</span>
-            @endif
-          </div>
+          <livewire:daily-tip />
         </div>
       </aside>
 
@@ -128,9 +115,6 @@
               <a class="play-now-btn" href="/puzzle" style="background: transparent; color: var(--gold); border: 1px solid var(--gold); box-shadow: none;">Play Puzzles</a>
               @if($user?->is_admin || $user?->hasRole('super_admin'))
                 <button class="play-now-btn" id="ai-generate-btn" style="background: transparent; color: #ffb703; border: 1px solid #ffb703; box-shadow: none; cursor: pointer;">⚡ AI Generate Puzzle</button>
-              @endif
-              @if(isset($savedGame) && $savedGame)
-                <a class="play-now-btn" href="/game?resume=true" style="background: transparent; color: var(--gold-lt); border: 1px solid var(--border); box-shadow: none;">Resume Game</a>
               @endif
             </div>
           </section>
@@ -606,133 +590,11 @@
                 </div>
               </div>
             </section>
-
-            @if($matches->isEmpty())
-              <div class="empty-history">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
-                </svg>
-                <p>You haven't played any matches yet.</p>
-                <a class="play-now-btn btn-small" href="/game">Start Match</a>
-              </div>
-            @else
-              <div class="table-container">
-                <table class="history-table">
-                  <thead>
-                    <tr>
-                      <th>No.</th>
-                      <th>Result</th>
-                      <th>Drafted Power</th>
-                      <th>Difficulty</th>
-                      <th>Duration</th>
-                      <th>Played At</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @foreach($matches as $index => $match)
-                      @php
-                        $minutes = floor($match->total_time / 60);
-                        $seconds = $match->total_time % 60;
-                        
-                        $powersMap = [
-                          'blink_knight' => 'Blink Knight',
-                          'super_rook' => 'Super Rook',
-                          'confused_pawn' => 'Confused Pawn',
-                          'undying_king' => 'Undying King',
-                          'omni_queen' => 'Omni Queen',
-                          'grey_bishop' => 'Grey Bishop',
-                        ];
-                        $powerName = $powersMap[$match->power_type] ?? 'None';
-                        $difficultyNamesMap = [
-                          100 => 'Beginner',
-                          500 => 'Intermediate',
-                          1000 => 'Professional',
-                          2500 => 'Master',
-                          5000 => 'Grandmaster'
-                        ];
-                        $diffName = $difficultyNamesMap[(int)$match->difficulty] ?? 'Professional';
-                      @endphp
-                      <tr>
-                        <td>{{ $matches->count() - $index }}</td>
-                        <td>
-                          @if($match->is_win)
-                            <span class="badge badge-win">Victory</span>
-                          @else
-                            <span class="badge badge-loss">Defeat</span>
-                          @endif
-                        </td>
-                        <td>
-                          <span class="power-badge {{ $match->power_type ?: 'no-power' }}">
-                            {{ $powerName }}
-                          </span>
-                        </td>
-                        <td>
-                          <span class="power-badge" style="background: rgba(201, 168, 76, 0.1); border: 1px solid rgba(201, 168, 76, 0.25); color: var(--gold-lt);">
-                            {{ $diffName }}
-                          </span>
-                        </td>
-                        <td class="duration-cell">{{ $minutes }}m {{ $seconds }}s</td>
-                        <td class="date-cell">{{ $match->created_at->format('d M Y, H:i') }}</td>
-                      </tr>
-                    @endforeach
-                  </tbody>
-                </table>
-            @endif
+            <livewire:game-history />
           </section>
 
         @elseif($tab === 'leaderboard')
-          <!-- TAB 3: LEADERBOARD -->
-          <section class="history-section leaderboard-section animate animate-2">
-            <div class="history-header">
-              <h2>Top Commanders</h2>
-              <p>Top rankings of Chess War players based on total wins.</p>
-            </div>
-
-            <div class="table-container">
-              <table class="history-table leaderboard-table">
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Player</th>
-                    <th>Matches</th>
-                    <th>Wins</th>
-                    <th>Win Rate</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach($leaderboard as $player)
-                    @php
-                      $isCurrentUser = $player->id === auth()->id();
-                      $rankBadge = '';
-                      if ($player->rank === 1) $rankBadge = '🥇';
-                      elseif ($player->rank === 2) $rankBadge = '🥈';
-                      elseif ($player->rank === 3) $rankBadge = '🥉';
-                    @endphp
-                    <tr class="{{ $isCurrentUser ? 'current-user-row' : '' }} {{ $player->rank <= 3 ? 'top-three-row' : '' }}">
-                      <td>
-                        <span class="rank-badge rank-{{ $player->rank }}">
-                          {!! $rankBadge ?: $player->rank !!}
-                        </span>
-                      </td>
-                      <td>
-                        <strong>{{ $player->name }}</strong>
-                        @if($isCurrentUser)
-                          <span class="you-badge">(You)</span>
-                        @endif
-                      </td>
-                      <td>{{ $player->total_matches }}</td>
-                      <td>{{ $player->won_matches }}</td>
-                      <td style="color: var(--gold-lt); font-weight: 500;">{{ $player->winrate }}%</td>
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
-            </div>
-          </section>
+          <livewire:leaderboard />
         @endif
       </main>
       
@@ -920,5 +782,6 @@
       });
       </script>
   @endif
+  @livewireScripts
 </body>
 </html>
