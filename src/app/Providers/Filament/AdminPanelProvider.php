@@ -53,6 +53,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 NavigationGroup::make()
+                    ->label('Game Management'),
+                NavigationGroup::make()
+                    ->label('Puzzles & Tips'),
+                NavigationGroup::make()
                     ->label('Administration'),
             ])
             ->userMenuItems([

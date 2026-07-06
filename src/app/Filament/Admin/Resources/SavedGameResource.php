@@ -16,7 +16,7 @@ class SavedGameResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-bookmark';
 
-    protected static ?string $navigationGroup = 'Administration';
+    protected static ?string $navigationGroup = 'Game Management';
 
     protected static ?int $navigationSort = 2;
 

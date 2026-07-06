@@ -4,8 +4,8 @@ return [
     'datetime_format' => 'd/m/Y H:i:s',
     'date_format' => 'd/m/Y',
 
-    'activity_resource' => \Z3d0X\FilamentLogger\Resources\ActivityResource::class,
-    'scoped_to_tenant' => true,
+    'activity_resource' => \App\Filament\Admin\Resources\ActivityResource::class,
+    'scoped_to_tenant' => false,
     'navigation_sort' => null,
 
     'resources' => [

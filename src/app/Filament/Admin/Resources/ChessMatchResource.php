@@ -16,7 +16,7 @@ class ChessMatchResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-trophy';
 
-    protected static ?string $navigationGroup = 'Administration';
+    protected static ?string $navigationGroup = 'Game Management';
 
     protected static ?int $navigationSort = -1;
 

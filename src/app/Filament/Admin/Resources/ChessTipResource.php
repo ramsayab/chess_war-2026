@@ -16,7 +16,7 @@ class ChessTipResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-light-bulb';
 
-    protected static ?string $navigationGroup = 'Administration';
+    protected static ?string $navigationGroup = 'Puzzles & Tips';
 
     protected static ?int $navigationSort = 1;
 

@@ -16,7 +16,7 @@ class PuzzleAttemptResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-puzzle-piece';
 
-    protected static ?string $navigationGroup = 'Administration';
+    protected static ?string $navigationGroup = 'Puzzles & Tips';
 
     protected static ?int $navigationSort = 3;
 
